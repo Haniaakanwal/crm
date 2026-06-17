@@ -1,7 +1,7 @@
 import TodaysEntry from './TodaysEntry';
 import RecentHistory from './RecentHistory';
 import MonthlySummary from './MonthlySummary';
-import './styles/timesheet.css';
+import './styles/timeSheet.css';
 
 function EmployeTimesheet() {
   const user = JSON.parse(localStorage.getItem('ams_current_user') || '{}');
