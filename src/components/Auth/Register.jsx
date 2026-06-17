@@ -8,6 +8,7 @@ import { CiLock } from "react-icons/ci";
 import { IoPerson } from "react-icons/io5";
 import { FaEye, FaEyeSlash, FaArrowRight } from "react-icons/fa";
 
+import { runFileMakerScript } from '../../services/fileMakerService';
 
 function Register() {
   const navigate = useNavigate();
