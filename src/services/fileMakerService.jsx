@@ -1,11 +1,12 @@
 const FM_CONFIG = {
-  baseUrl: '/api/fmapi',   // ← changed
+  baseUrl: '/api/fmproxy',
   database: 'Practice',
   layout: 'ApiLog',
   scriptName: 'DapiCALL',
   username: 'DAPI',
   password: 'dapi',
 };
+
 
 async function safeJson(res) {
   const text = await res.text();
@@ -21,7 +22,8 @@ async function safeJson(res) {
 
 // ── Step 1: Create session ──────────────────────────────────────────
 async function createSession() {
-  const url = `${FM_CONFIG.baseUrl}/fmi/data/v1/databases/${FM_CONFIG.database}/sessions`;
+  const fmPath = `fmi/data/v1/databases/${FM_CONFIG.database}/sessions`;
+  const url = `${FM_CONFIG.baseUrl}?path=${encodeURIComponent(fmPath)}`;
 
   const res = await fetch(url, {
     method: 'POST',
@@ -34,20 +36,16 @@ async function createSession() {
   const data = await safeJson(res);
   console.log('[Step 1] createSession status:', res.status, 'body:', data);
 
-  if (!res.ok) {
-    throw new Error(`FileMaker auth failed: ${res.status} ${JSON.stringify(data)}`);
-  }
-
+  if (!res.ok) throw new Error(`FileMaker auth failed: ${res.status} ${JSON.stringify(data)}`);
   const token = data?.response?.token;
   if (!token) throw new Error(`No token returned. Response: ${JSON.stringify(data)}`);
-
   return token;
 }
 
-// ── Step 2: Call script ──────────────────────────────────────────────
 async function callScript(token, scriptParam = {}) {
   const paramStr = encodeURIComponent(JSON.stringify(scriptParam));
-  const url = `${FM_CONFIG.baseUrl}/fmi/data/v1/databases/${FM_CONFIG.database}/layouts/${FM_CONFIG.layout}/script/${FM_CONFIG.scriptName}?script.param=${paramStr}`;
+  const fmPath = `fmi/data/v1/databases/${FM_CONFIG.database}/layouts/${FM_CONFIG.layout}/script/${FM_CONFIG.scriptName}?script.param=${paramStr}`;
+  const url = `${FM_CONFIG.baseUrl}?path=${encodeURIComponent(fmPath)}`;
 
   const res = await fetch(url, {
     method: 'GET',
@@ -60,34 +58,30 @@ async function callScript(token, scriptParam = {}) {
   const data = await safeJson(res);
   console.log('[Step 2] callScript status:', res.status, 'body:', data);
 
-  if (!res.ok) {
-    throw new Error(`Script call failed: ${res.status} ${JSON.stringify(data)}`);
-  }
+  if (!res.ok) throw new Error(`Script call failed: ${res.status} ${JSON.stringify(data)}`);
 
   const raw = data?.response?.scriptResult;
   let parsed;
   try {
     parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
   } catch {
-    parsed = raw; // not JSON, return as-is
+    parsed = raw;
   }
-
   console.log('[Step 2] parsed scriptResult:', parsed);
   return parsed;
 }
-
-// ── Step 3: Delete session ───────────────────────────────────────────
 async function deleteSession(token) {
-  const url = `${FM_CONFIG.baseUrl}/fmi/data/v1/databases/${FM_CONFIG.database}/sessions/${token}`;
+  const fmPath = `fmi/data/v1/databases/${FM_CONFIG.database}/sessions/${token}`;
+  const url = `${FM_CONFIG.baseUrl}?path=${encodeURIComponent(fmPath)}`;
+
   try {
     const res = await fetch(url, { method: 'DELETE' });
-    const data = await safeJson(res); // safe now — won't throw on empty body
+    const data = await safeJson(res);
     console.log('[Step 3] deleteSession status:', res.status, 'body:', data);
   } catch (e) {
     console.error('FileMaker logout failed:', e);
   }
 }
-
 // ── Generic runner ─────────────────────────────────────────────────
 export async function runFileMakerScript(scriptParam = {}) {
   const token = await createSession();

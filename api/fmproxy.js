@@ -1,9 +1,9 @@
 export default async function handler(req, res) {
-  const pathSegments = req.query.path || [];
-  const path = Array.isArray(pathSegments) ? pathSegments.join('/') : pathSegments;
-  const targetUrl = `https://fm.idiosol.com/${path}`;
-
   try {
+    const { path } = req.query;
+    const targetPath = path || '';
+    const targetUrl = `https://fm.idiosol.com/${targetPath}`;
+
     const headers = {};
     if (req.headers.authorization) headers['Authorization'] = req.headers.authorization;
     headers['Content-Type'] = 'application/json';
@@ -17,9 +17,7 @@ export default async function handler(req, res) {
     const text = await fmRes.text();
     res.status(fmRes.status);
 
-    if (!text) {
-      return res.end();
-    }
+    if (!text) return res.end();
 
     try {
       res.json(JSON.parse(text));
