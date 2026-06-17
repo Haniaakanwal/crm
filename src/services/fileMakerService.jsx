@@ -1,49 +1,55 @@
 const FM_CONFIG = {
-  baseUrl: 'https://fm.idiosol.com',
+  baseUrl: '/fmapi',
   database: 'Practice',
   layout: 'ApiLog',
   scriptName: 'DapiCALL',
-  credentials: {
-    username: 'DAPI',
-    password: 'dapi',
-  },
+  username: 'DAPI',
+  password: 'dapi',
 };
 
-// 1. CREATE SESSION
-export async function createSession() {
+async function safeJson(res) {
+  const text = await res.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    console.warn('Non-JSON response body:', text.slice(0, 300));
+    return { __raw: text };
+  }
+}
+
+
+// ── Step 1: Create session ──────────────────────────────────────────
+async function createSession() {
   const url = `${FM_CONFIG.baseUrl}/fmi/data/v1/databases/${FM_CONFIG.database}/sessions`;
 
-  const response = await fetch(url, {
+  const res = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization:
-        'Basic ' +
-        btoa(
-          `${FM_CONFIG.credentials.username}:${FM_CONFIG.credentials.password}`
-        ),
+      Authorization: `Basic ${btoa(`${FM_CONFIG.username}:${FM_CONFIG.password}`)}`,
     },
   });
 
-  const data = await response.json();
+  const data = await safeJson(res);
+  console.log('[Step 1] createSession status:', res.status, 'body:', data);
 
-  if (!response.ok) {
-    throw new Error(data?.messages?.[0]?.message || 'Session failed');
+  if (!res.ok) {
+    throw new Error(`FileMaker auth failed: ${res.status} ${JSON.stringify(data)}`);
   }
 
-  return data.response.token;
+  const token = data?.response?.token;
+  if (!token) throw new Error(`No token returned. Response: ${JSON.stringify(data)}`);
+
+  return token;
 }
 
-// 2. CALL SCRIPT
-export async function callScript(token, payload) {
-  const param =
-    typeof payload === 'string' ? payload : JSON.stringify(payload);
+// ── Step 2: Call script ──────────────────────────────────────────────
+async function callScript(token, scriptParam = {}) {
+  const paramStr = encodeURIComponent(JSON.stringify(scriptParam));
+  const url = `${FM_CONFIG.baseUrl}/fmi/data/v1/databases/${FM_CONFIG.database}/layouts/${FM_CONFIG.layout}/script/${FM_CONFIG.scriptName}?script.param=${paramStr}`;
 
-  const url = `${FM_CONFIG.baseUrl}/fmi/data/v1/databases/${FM_CONFIG.database}/layouts/${FM_CONFIG.layout}/script/${FM_CONFIG.scriptName}?script.param=${encodeURIComponent(
-    param
-  )}`;
-
-  const response = await fetch(url, {
+  const res = await fetch(url, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -51,46 +57,55 @@ export async function callScript(token, payload) {
     },
   });
 
-  const data = await response.json();
+  const data = await safeJson(res);
+  console.log('[Step 2] callScript status:', res.status, 'body:', data);
 
-  if (!response.ok) {
-    throw new Error(data?.messages?.[0]?.message || 'Script failed');
+  if (!res.ok) {
+    throw new Error(`Script call failed: ${res.status} ${JSON.stringify(data)}`);
   }
 
-  return data?.response?.scriptResult;
+  const raw = data?.response?.scriptResult;
+  let parsed;
+  try {
+    parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+  } catch {
+    parsed = raw; // not JSON, return as-is
+  }
+
+  console.log('[Step 2] parsed scriptResult:', parsed);
+  return parsed;
 }
 
-// 3. DELETE SESSION (logout)
-export async function deleteSession(token) {
+// ── Step 3: Delete session ───────────────────────────────────────────
+async function deleteSession(token) {
+  const url = `${FM_CONFIG.baseUrl}/fmi/data/v1/databases/${FM_CONFIG.database}/sessions/${token}`;
   try {
-    await fetch(
-      `${FM_CONFIG.baseUrl}/fmi/data/v1/databases/${FM_CONFIG.database}/sessions/${token}`,
-      {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-  } catch (err) {
-    console.error('Logout failed:', err);
+    const res = await fetch(url, { method: 'DELETE' });
+    const data = await safeJson(res); // safe now — won't throw on empty body
+    console.log('[Step 3] deleteSession status:', res.status, 'body:', data);
+  } catch (e) {
+    console.error('FileMaker logout failed:', e);
   }
 }
 
-// 4. LOGIN FLOW (IMPORTANT)
-export async function loginFileMaker(payload) {
+// ── Generic runner ─────────────────────────────────────────────────
+export async function runFileMakerScript(scriptParam = {}) {
   const token = await createSession();
-  const result = await callScript(token, payload);
-
-  return { token, result };
-}
-export async function runFileMakerScript(scriptParam = '') {
-  const token = await createSession();
-
   try {
-    const result = await callScript(token, scriptParam);
-    return result;
+    return await callScript(token, scriptParam);
   } finally {
     await deleteSession(token);
   }
+}
+
+// ── Used by Login.jsx ──────────────────────────────────────────────
+export async function loginFileMaker(payload) {
+  const token = await createSession();
+  let result;
+  try {
+    result = await callScript(token, payload);
+  } finally {
+    await deleteSession(token);
+  }
+  return { token, result };
 }
