@@ -1,0 +1,348 @@
+.te-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 420px;
+}
+
+/* ── Header ── */
+.te-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  background-color: transparent;
+}
+
+.te-header-left { background-color: transparent; }
+
+.te-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  background-color: transparent;
+}
+
+.te-subtitle {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 3px;
+  background-color: transparent;
+}
+
+.te-ramadan {
+  color: var(--accent-amber-gold);
+  background-color: transparent;
+}
+
+.te-status-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid;
+  background-color: transparent;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+}
+
+/* ── In / Out boxes ── */
+.te-inout-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  background-color: transparent;
+}
+
+.te-inout-box {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.te-inout-box.te-inout-filled {
+  border-color: rgba(245, 184, 78, 0.3);
+}
+
+.te-inout-label {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  background-color: transparent;
+  text-transform: uppercase;
+}
+
+.te-inout-time {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent-amber-gold);
+  background-color: transparent;
+  line-height: 1.1;
+}
+
+.te-inout-sub {
+  font-size: 10px;
+  color: var(--text-muted);
+  background-color: transparent;
+}
+
+/* ── Net Hours ── */
+.te-net-section {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.te-net-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: transparent;
+}
+
+.te-net-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  background-color: var(--bg-surface);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.te-net-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-primary);
+  background-color: transparent;
+}
+
+.te-net-goal {
+  font-size: 11px;
+  color: var(--text-muted);
+  background-color: transparent;
+}
+
+.te-remaining-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--info-blue);
+  background-color: transparent;
+}
+
+.te-progress-track {
+  height: 4px;
+  background-color: var(--bg-hover);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.te-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-amber-gold), var(--success-green));
+  border-radius: 4px;
+  transition: width 1s linear;
+  background-color: transparent;
+}
+
+/* ── Breaks ── */
+.te-breaks-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: transparent;
+}
+
+.te-breaks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: transparent;
+}
+
+.te-breaks-title {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  background-color: transparent;
+  text-transform: uppercase;
+}
+
+.te-breaks-total {
+  font-size: 11px;
+  color: var(--accent-amber-gold);
+  font-weight: 600;
+  background-color: transparent;
+}
+
+.te-break-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+}
+
+.te-break-live {
+  border-color: rgba(52, 211, 153, 0.3);
+  background-color: rgba(52, 211, 153, 0.05);
+}
+
+.te-break-icon {
+  color: var(--text-muted);
+  background-color: transparent;
+}
+
+.te-break-time {
+  font-size: 12px;
+  color: var(--text-primary);
+  background-color: transparent;
+  flex: 1;
+}
+
+.te-break-dur {
+  font-size: 12px;
+  color: var(--text-secondary);
+  background-color: transparent;
+}
+
+.te-break-live-dot {
+  font-size: 11px;
+  color: var(--success-green);
+  background-color: transparent;
+  font-weight: 600;
+}
+
+.te-break-warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--danger-red);
+  background-color: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.te-break-warning strong {
+  background-color: transparent;
+  color: var(--danger-red);
+}
+
+.te-break-actions {
+  display: flex;
+  gap: 8px;
+  background-color: transparent;
+}
+
+/* ── Buttons ── */
+.te-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid;
+  font-family: Syne;
+  transition: opacity 0.15s;
+  background-color: transparent;
+}
+
+.te-btn-end {
+  border-color: var(--danger-red);
+  color: var(--danger-red);
+  background-color: rgba(248, 113, 113, 0.08);
+}
+
+.te-btn-end svg { background-color: transparent; color: var(--danger-red); }
+
+.te-btn-new {
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+  background-color: var(--bg-surface);
+}
+
+.te-btn-new svg { background-color: transparent; }
+
+.te-btn:hover { opacity: 0.8; }
+
+/* ── CTA ── */
+.te-cta-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: transparent;
+}
+
+.te-cta-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  font-family: Syne;
+  letter-spacing: 0.03em;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.te-cta-btn:active { transform: scale(0.98); }
+
+.te-cta-checkin {
+  background-color: var(--accent-amber-gold);
+  color: #070B13;
+}
+
+.te-cta-checkin svg { background-color: transparent; color: #070B13; }
+
+.te-cta-checkout {
+  background: linear-gradient(135deg, #1a4a2e, #0f3320);
+  color: var(--success-green);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  background-color: transparent;
+}
+
+.te-cta-checkout svg { background-color: transparent; color: var(--success-green); }
+
+.te-cta-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.te-cta-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  background-color: transparent;
+}
+
+.te-completed-msg {
+  text-align: center;
+  font-size: 13px;
+  color: var(--success-green);
+  background-color: rgba(52, 211, 153, 0.06);
+  border: 1px solid rgba(52, 211, 153, 0.2);
+  border-radius: 10px;
+  padding: 12px;
+}

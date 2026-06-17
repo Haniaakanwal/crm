@@ -1,0 +1,70 @@
+
+@font-face {
+    font-family: Syne;
+    src: url(/static/Syne-Medium.ttf);
+}
+
+*{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+
+    background-color: var(--bg-deep);
+    color: white;
+    font-family: Syne;
+}
+
+:root {
+  /* Background */
+  --bg-deep: #070B13;     /* Page / window background */
+  --bg-surface: #0C1422;  /* Header, toolbar, footer bars */
+  --bg-card: #101825;     /* Cards, panels, portals, lists */
+  --bg-hover: #161F30;    /* Hover state, alt table rows */
+  --bg-selected:#2B2720;
+  --bg-green:#132B31;
+  
+  /* Accent / status */
+  --accent-amber-gold: #F5B84E; /* Buttons, active states, links */
+  --success-green: #34D399;     /* Present, approved, live dot */
+  --danger-red: #F87171;        /* Absent, unpaid, error, reject */
+  --info-blue: #60A5FA;         /* Pending, info, notifications */
+
+  /* Text */
+  --text-primary: #E4ECFF;   /* All headings and main text */
+  --text-secondary: #7A8BAD; /* Labels, subtitles, metadata */
+  --text-muted: #808080;     /* Placeholders, empty states */
+
+  /* Border */
+  --border-color: rgba(255, 255, 255, 0.07); /* All dividers and card borders */
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-surface);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-amber-gold);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--bg-surface);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-muted) var(--bg-surface);
+}
