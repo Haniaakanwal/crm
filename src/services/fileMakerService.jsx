@@ -84,3 +84,13 @@ export async function loginFileMaker(payload) {
 
   return { token, result };
 }
+export async function runFileMakerScript(scriptParam = '') {
+  const token = await createSession();
+
+  try {
+    const result = await callScript(token, scriptParam);
+    return result;
+  } finally {
+    await deleteSession(token);
+  }
+}
