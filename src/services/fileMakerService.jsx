@@ -1,5 +1,5 @@
 const FM_CONFIG = {
-  baseUrl: '/fmapi',
+  baseUrl: '/api/fmapi',   // ← changed
   database: 'Practice',
   layout: 'ApiLog',
   scriptName: 'DapiCALL',
