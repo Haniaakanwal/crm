@@ -1,12 +1,10 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-
   "rewrites": [
     {
       "source": "/fmapi/:path*",
-      "destination": "https://your-filemaker-server.com/:path*"
+      "destination": "https://fm.idiosol.com/:path*"
     }
   ]
-
 }
