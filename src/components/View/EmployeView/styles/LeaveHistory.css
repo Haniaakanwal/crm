@@ -1,0 +1,105 @@
+.lh-card {
+  background: var(--card-bg, #11141f);
+  border: 1px solid var(--border-color, #1f2433);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 16px;
+}
+.lh-title {
+  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #f5f5f7);
+     background: var(--card-bg);
+}
+.lh-tabs {
+  display: inline-flex;
+  gap: 4px;
+  background: var(--track-bg, #1c2030);
+  border-radius: 8px;
+  padding: 4px;
+  margin-bottom: 16px;
+}
+.lh-tab {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary, #8b93a7);
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+.lh-tab-active {
+  background: var(--card-bg, #11141f);
+  color: var(--text-primary, #f5f5f7);
+}
+.lh-list {
+  display: flex;
+  flex-direction: column;
+     background: var(--card-bg);
+}
+.lh-row {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 10px;
+border-radius: 15px;
+margin-bottom: 4px;
+  border-bottom: 1px solid var(--border-color, #1f2433);
+border: 1px solid var(--border-color);
+}
+.lh-row:last-child {
+  border-bottom: none;
+  
+}
+.lh-date {
+  font-size: 12px;
+  color: var(--text-secondary, #8b93a7);
+     background: var(--card-bg);
+}
+.lh-leave-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #f5f5f7);
+  margin-bottom: 2px;
+     background-color: var(--card-bg);
+}
+.lh-subtitle {
+  font-size: 12.5px;
+  color: var(--text-secondary, #8b93a7);
+     background-color: var(--card-bg);
+}
+.lh-deducted-note {
+  font-size: 12.5px;
+  color: var(--success-green, #4ade80);
+  margin-top: 2px;
+}
+.lh-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.lh-badge-approved {
+  color: var(--success-green, #4ade80);
+  background: rgba(74, 222, 128, 0.12);
+}
+.lh-badge-pending {
+  color: #818cf8;
+  background: rgba(129, 140, 248, 0.14);
+}
+.lh-badge-rejected {
+  color: var(--danger-red, #f87171);
+  background: rgba(248, 113, 113, 0.12);
+}
+.lh-empty {
+  color: var(--text-secondary, #8b93a7);
+  font-size: 13px;
+     background: var(--card-bg);
+  padding: 12px 0;
+}

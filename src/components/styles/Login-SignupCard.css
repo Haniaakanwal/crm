@@ -1,7 +1,11 @@
+.login,.register{
+  background-color: var(--bg-deep);
+}
 .login-card {
   width: 100%;
   max-width: 340px;
   margin: 0 auto;
+  
 }
 .login-SignUp{
   display: flex;

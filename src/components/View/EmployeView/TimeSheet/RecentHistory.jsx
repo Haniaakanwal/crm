@@ -40,7 +40,7 @@ const getRecentEntries = (userId, lookbackDays = 14) => {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
     const dateStr = d.toISOString().slice(0, 10);
-    const key = `ams_timesheet_${userId}_${dateStr}`;
+    const key = `crm_timesheet_${userId}_${dateStr}`;
 
     try {
       const raw = localStorage.getItem(key);

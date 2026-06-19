@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   LuPhone, LuClock, LuLogIn, LuLogOut, LuPlay,LuCircleStop , LuTriangleAlert } from 'react-icons/lu';
+import { logShortTime } from '../Leaves/leaveStorage';
 
 // ── Constants ────────────────────────────────────────────────────────
 const REQUIRED_SECONDS = 8 * 3600; // 8 hours
@@ -28,8 +29,7 @@ const fmtHHMM = (ts) => {
 };
 
 const todayKey = () => new Date().toISOString().slice(0, 10); // "2026-06-16"
-
-const storageKey = (userId) => `ams_timesheet_${userId}_${todayKey()}`;
+const storageKey = (userId) => `crm_timesheet_${userId}_${todayKey()}`;
 
 const loadEntry = (userId) => {
   try {
@@ -100,10 +100,20 @@ function TodaysEntry({ userId = 'default_user' }) {
     setEntry(e => ({ ...e, checkIn: now() }));
   }, []);
 
-  const handleCheckOut = useCallback(() => {
-    if (onActiveBreak) return; // must end break first
-    setEntry(e => ({ ...e, checkOut: now() }));
-  }, [onActiveBreak]);
+const handleCheckOut = useCallback(() => {
+  if (onActiveBreak || isCheckedOut) return; // must end break first; guard double-checkout
+
+  const checkOutTime = now();
+  const finalElapsedMs = (checkOutTime - entry.checkIn) - totalBreakMs;
+  const shortfallMs = REQUIRED_SECONDS * 1000 - finalElapsedMs;
+  const shortMinutes = shortfallMs > 0 ? Math.round(shortfallMs / 60000) : 0;
+
+  if (shortMinutes > 0) {
+    logShortTime(userId, shortMinutes, todayKey());
+  }
+
+  setEntry(e => ({ ...e, checkOut: checkOutTime }));
+}, [onActiveBreak, isCheckedOut, entry, totalBreakMs, userId]);
 
   const handleStartBreak = useCallback(() => {
     setEntry(e => ({ ...e, activeBreak: { start: now() } }));
@@ -213,14 +223,7 @@ function TodaysEntry({ userId = 'default_user' }) {
             </div>
           )}
 
-          {breakOverLimit && (
-            <div className="te-break-warning">
-              <LuTriangleAlert size={13} />
-              Break limit: <strong>60 min/day</strong>. You've used {fmt(totalBreakMs)}.
-              Extra time deducted from net hours.
-            </div>
-          )}
-
+      
           {/* Break action buttons */}
           {!isCheckedOut && (
             <div className="te-break-actions">
@@ -268,6 +271,15 @@ function TodaysEntry({ userId = 'default_user' }) {
             ✓ Day complete · {fmt(elapsedMs)} net · checked out at {fmtHHMM(entry.checkOut)}
           </div>
         )}
+
+            {breakOverLimit && (
+            <div className="te-break-warning">
+              <LuTriangleAlert size={13} className='warning'/>
+              Break limit: 60 min/day. You've used {fmt(totalBreakMs)}.
+              Extra time deducted from net hours.
+            </div>
+          )}
+
       </div>
 
     </div>

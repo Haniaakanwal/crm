@@ -1,19 +1,21 @@
 import { NavLink } from 'react-router';
-import { LuHouse, LuClock, LuCalendarDays, LuMonitor, LuUmbrellaOff } from 'react-icons/lu';
+import { LuHouse, LuClock, LuCalendarDays, LuMonitor, LuCalendarOff } from 'react-icons/lu';
+import { deriveDisplayName, getInitials } from '../../utils/userDisplay';
 
 const NAV_ITEMS = [
   { label: 'My Home',      path: '/employeView/home',      icon: LuHouse },
   { label: 'My Timesheet', path: '/employeView/timesheet', icon: LuClock, badge: 'Live' },
-  { label: 'My Leaves',    path: '/employeView/leaves',    icon: LuUmbrellaOff },
+  { label: 'My Leaves',    path: '/employeView/leaves',    icon: LuCalendarOff },
   { label: 'My Assets',    path: '/employeView/assets',    icon: LuMonitor },
   { label: 'Holidays',     path: '/employeView/holidays',  icon: LuCalendarDays },
 ];
 
 function Sidebar() {
   // ── Read logged-in user from localStorage ──
-  const user = JSON.parse(localStorage.getItem('ams_current_user') || '{}');
-  const displayName = user.username?.toUpperCase() || 'USER';
-  const initials = user.username?.slice(0, 2).toUpperCase() || 'U';
+  const user = JSON.parse(localStorage.getItem('crm_current_user') || '{}');
+  const rawName = deriveDisplayName(user);
+  const displayName = rawName.toUpperCase();
+  const initials = getInitials(user, rawName);
   const role = user.role
     ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
     : 'Employee';

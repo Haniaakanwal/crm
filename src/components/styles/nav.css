@@ -5,7 +5,7 @@
    align-items: center; 
    gap: 10px;
   border-bottom: 2px solid var(--border-color);
-   
+   background-color: var(--bg-deep);
 }
 h2{
     color: var(--accent-amber-gold);
@@ -15,9 +15,10 @@ button{
     padding: 5px 10px;
     border-radius: 20px;
     color: var(--text-secondary);
+    background-color: var(--bg-deep);
 }
 
-.btn.active {
+button.active  {
      border: 1px solid var(--accent-amber-gold);
     color: var(--accent-amber-gold);
     background-color: var(  --bg-selected);

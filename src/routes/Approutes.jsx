@@ -6,11 +6,11 @@ import Register from '../components/Auth/Register';
 import EmpolyeDashboard   from '../components/View/EmployeView/EmpolyeDashboard';
 
 // Portal pages
-import EmployeViewHome    from '../components/View/EmployeView/EmployeViewHome';
-import EmployeTimesheet   from '../components/View/EmployeView/EmployeTimesheet';
-import EmployeLeaves      from '../components/View/EmployeView/EmployeLeaves';
+import EmployeHome    from '../components/View/EmployeView/EmployeeHome';
+import EmployeTimesheet   from '../components/View/EmployeView/TimeSheet/EmployeTimesheet';
+import EmployeLeaves      from '../components/View/EmployeView/Leaves/EmployeLeaves';
 import EmployeAssets      from '../components/View/EmployeView/EmployeAssets';
-import Holidays           from '../components/View/EmployeView/Holidays';
+import Holidays           from '../components/View/EmployeView/Holidays/EmployeeHolidays';
 
 function AppRoutes() {
   return (
@@ -24,7 +24,7 @@ function AppRoutes() {
       <Route path="/employeView" element={<EmpolyeDashboard />}>
         {/* /employeView → redirect to home */}
         <Route index element={<Navigate to="home" replace />} />
-        <Route path="home"      element={<EmployeViewHome />} />
+        <Route path="home"      element={<EmployeHome />} />
         <Route path="timesheet" element={<EmployeTimesheet />} />
         <Route path="leaves"    element={<EmployeLeaves />} />
         <Route path="assets"    element={<EmployeAssets />} />

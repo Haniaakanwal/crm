@@ -24,7 +24,7 @@ const getMonthlyStats = (userId) => {
   for (let day = 1; day <= today.getDate(); day++) {
     const d = new Date(year, month, day);
     const dateStr = d.toISOString().slice(0, 10);
-    const key = `ams_timesheet_${userId}_${dateStr}`;
+    const key = `crm_timesheet_${userId}_${dateStr}`;
 
     const isWeekend = d.getDay() === 0; // Sunday off — adjust if needed
     if (isWeekend) continue;

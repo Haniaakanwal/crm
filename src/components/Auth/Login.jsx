@@ -9,7 +9,7 @@ import Nav from './Nav';
 import Hero from './Hero';
 
 // ✅ IMPORT API
-import { loginFileMaker } from '../../services/fileMakerService';
+import { loginWithEnquiry } from '../../services/fileMakerService';
 
 function Login() {
   const navigate = useNavigate();
@@ -58,33 +58,23 @@ function Login() {
     setApiError('');
 
     try {
-      // 🔐 FILEMAKER LOGIN CALL
-      const { token, result } = await loginFileMaker({
-        action: 'login',
+      // 🔐 CHECK CREDENTIALS DIRECTLY AGAINST THE ENQUIRY TABLE
+      // (matches how registration actually stores accounts now)
+      const result = await loginWithEnquiry({
         email: fields.email.trim(),
         password: fields.password,
-        role,
       });
-
-      // ❌ handle backend errors
-      if (result?.status === 'ko' || result?.Error) {
-        setApiError(result?.message || 'Login failed');
-        return;
-      }
-
-      // 💾 STORE TOKEN
-      localStorage.setItem('fm_token', token);
 
       // 💾 STORE USER
       localStorage.setItem(
-        'ams_current_user',
+        'crm_current_user',
         JSON.stringify({
-          id: result?.id,
-          email: result?.email,
-          username: result?.username,
-          role: result?.role || role,
+          id: result.recordId,
+          email: result.email,
+          username: result.username,
+          role,
           initials:
-            result?.username?.slice(0, 2).toUpperCase() || 'U',
+            result.username?.slice(0, 2).toUpperCase(),
         })
       );
 
@@ -96,7 +86,9 @@ function Login() {
       }
 
     } catch (err) {
-      setApiError(err.message);
+      // loginWithEnquiry throws when no matching record was found,
+      // this is what actually blocks login for a nonexistent user.
+      setApiError(err.message || 'Invalid email or password.');
     } finally {
       setLoading(false);
     }

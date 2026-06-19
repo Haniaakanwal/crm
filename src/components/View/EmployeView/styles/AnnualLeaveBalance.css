@@ -1,0 +1,106 @@
+.leave-balance-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 20px 24px;
+}
+
+.leave-balance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.leave-balance-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.leave-balance-year {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-amber-gold);
+}
+
+.leave-progress-track {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background-color: var(--bg-hover);
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.leave-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--success-green), var(--accent-amber-gold));
+  transition: width 0.3s ease;
+}
+
+.leave-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.leave-progress-used {
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.leave-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.leave-stat {
+  background-color: var(--bg-surface);
+  border-radius: 8px;
+  padding: 14px;
+  text-align: center;
+}
+
+.leave-stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.leave-stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.leave-stat-sublabel {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.leave-stat-remaining .leave-stat-value {
+  color: var(--success-green);
+}
+
+.leave-stat-paid .leave-stat-value {
+  color: var(--accent-amber-gold);
+}
+
+.leave-stat-short .leave-stat-value {
+  color: #a78bfa;
+}
+
+.leave-stat-unpaid .leave-stat-value {
+  color: var(--danger-red);
+}
+

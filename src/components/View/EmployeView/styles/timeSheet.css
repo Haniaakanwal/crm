@@ -228,7 +228,6 @@
 .te-break-warning {
   display: flex;
   align-items: center;
-  gap: 6px;
   font-size: 11px;
   color: var(--danger-red);
   background-color: rgba(248, 113, 113, 0.08);
@@ -237,9 +236,9 @@
   padding: 8px 12px;
 }
 
-.te-break-warning strong {
-  background-color: transparent;
-  color: var(--danger-red);
+.warning{
+  background-color:var(----bg-selected) ;
+
 }
 
 .te-break-actions {

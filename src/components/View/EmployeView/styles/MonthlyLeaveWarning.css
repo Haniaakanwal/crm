@@ -1,0 +1,28 @@
+.monthly-leave-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background-color: rgba(248, 113, 113, 0.08);
+  border: 1px solid var(--danger-red);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.monthly-leave-warning .warning-icon {
+  color: var(--danger-red);
+  font-size: 16px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.monthly-leave-warning .warning-text {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.monthly-leave-warning .warning-text strong {
+  color: var(--danger-red);
+}

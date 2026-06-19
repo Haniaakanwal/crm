@@ -1,10 +1,10 @@
 import TodaysEntry from './TodaysEntry';
 import RecentHistory from './RecentHistory';
 import MonthlySummary from './MonthlySummary';
-import './styles/timeSheet.css';
+import '../styles/timeSheet.css';
 
 function EmployeTimesheet() {
-  const user = JSON.parse(localStorage.getItem('ams_current_user') || '{}');
+  const user = JSON.parse(localStorage.getItem('crm_current_user') || '{}');
   const userId = user.id || user.email || 'guest';
 
   return (
@@ -14,6 +14,7 @@ function EmployeTimesheet() {
 
       <div className="ts-layout">
         <TodaysEntry userId={userId} />
+
         <div className="ts-right-col">
           <RecentHistory userId={userId} />
           <MonthlySummary userId={userId} />

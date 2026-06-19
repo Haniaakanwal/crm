@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { LuCrown, LuUser, LuSearch, LuBell } from 'react-icons/lu';
+import { deriveDisplayName, getInitials } from '../../utils/userDisplay';
 
 function Navbar({ activeRole, onRoleSwitch }) {
   const [time, setTime] = useState('');
 
   // ── Read logged-in user from localStorage ──
   const user = JSON.parse(localStorage.getItem('crm_current_user') || '{}');
-  const displayName = user.username?.toUpperCase() || 'USER';
-  const initials = user.username?.slice(0, 2).toUpperCase() || 'U';
+  const rawName = deriveDisplayName(user);
+  const displayName = rawName.toUpperCase();
+  const initials = getInitials(user, rawName);
   const role = user.role
     ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
     : 'Employee';
