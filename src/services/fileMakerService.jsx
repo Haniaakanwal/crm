@@ -7,7 +7,7 @@ const FM_CONFIG = {
   password: 'dapi',
 };
 
-async function safeJson(res) {
+export async function safeJson(res) {
   const text = await res.text();
   if (!text) return null;
   try {
@@ -20,7 +20,7 @@ async function safeJson(res) {
 
 
 // ── Step 1: Create session ──────────────────────────────────────────
-async function createSession() {
+export async function createSession() {
   const url = `${FM_CONFIG.baseUrl}/fmi/data/v1/databases/${FM_CONFIG.database}/sessions`;
 
   const res = await fetch(url, {
@@ -46,8 +46,8 @@ async function createSession() {
 
 // ── Step 2: Call script ──────────────────────────────────────────────
 async function callScript(token, scriptParam = {}) {
-  const parcrmtr = encodeURIComponent(JSON.stringify(scriptParam));
-  const url = `${FM_CONFIG.baseUrl}/fmi/data/v1/databases/${FM_CONFIG.database}/layouts/${FM_CONFIG.layout}/script/${FM_CONFIG.scriptName}?script.param=${parcrmtr}`;
+  const paramStr = encodeURIComponent(JSON.stringify(scriptParam));
+  const url = `${FM_CONFIG.baseUrl}/fmi/data/v1/databases/${FM_CONFIG.database}/layouts/${FM_CONFIG.layout}/script/${FM_CONFIG.scriptName}?script.param=${paramStr}`;
 
   const res = await fetch(url, {
     method: 'GET',
@@ -77,7 +77,7 @@ async function callScript(token, scriptParam = {}) {
 }
 
 // ── Step 3: Delete session ───────────────────────────────────────────
-async function deleteSession(token) {
+export async function deleteSession(token) {
   const url = `${FM_CONFIG.baseUrl}/fmi/data/v1/databases/${FM_CONFIG.database}/sessions/${token}`;
   try {
     const res = await fetch(url, { method: 'DELETE' });
@@ -108,6 +108,42 @@ export async function loginFileMaker(payload) {
     await deleteSession(token);
   }
   return { token, result };
+}
+
+// ── Fetch all registered users from the Enquiry table ─────────────────
+export async function getAllUsers() {
+  const token = await createSession();
+  try {
+    const url = `${FM_CONFIG.baseUrl}/fmi/data/v1/databases/${FM_CONFIG.database}/layouts/Enquiry/records?_limit=200`;
+
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await safeJson(res);
+    console.log('[Users] getAllUsers status:', res.status, 'body:', data);
+
+    if (!res.ok) {
+      // No records at all yet — not a real error, just an empty table
+      const fmCode = data?.messages?.[0]?.code;
+      if (fmCode === '401') return [];
+      throw new Error(`Could not fetch users: ${res.status} ${JSON.stringify(data)}`);
+    }
+
+    const records = data?.response?.data || [];
+    return records.map((r) => ({
+      id: r.recordId,
+      name: r.fieldData?.Username || r.fieldData?.Email || `User ${r.recordId}`,
+      email: r.fieldData?.Email,
+      phoneNo: r.fieldData?.PhoneNo,
+    }));
+  } finally {
+    await deleteSession(token);
+  }
 }
 
 // ── Find a matching Enquiry record by email + password (used for login) ──

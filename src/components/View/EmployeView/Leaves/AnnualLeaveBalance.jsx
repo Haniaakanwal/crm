@@ -1,8 +1,6 @@
 import '../styles/AnnualLeaveBalance.css';
-import { calculateLeaveSummary } from './leaveUtils';
 
-function AnnualLeaveBalance({ leaves, year, shortSummary }) {
-  const summary = calculateLeaveSummary(leaves, year, shortSummary);
+function AnnualLeaveBalance({ summary, year }) {
   const percentUsed = Math.min((summary.usedDays / summary.totalDays) * 100, 100);
 
   return (
@@ -34,9 +32,8 @@ function AnnualLeaveBalance({ leaves, year, shortSummary }) {
           <div className="leave-stat-label">Paid taken</div>
         </div>
         <div className="leave-stat leave-stat-short">
-          <div className="leave-stat-value">{summary.shortDays.toFixed(2)}d</div>
+          <div className="leave-stat-value">{summary.shortDays.toFixed(1)}d</div>
           <div className="leave-stat-label">Short converted</div>
-      
         </div>
         <div className="leave-stat leave-stat-unpaid">
           <div className="leave-stat-value">{summary.unpaidTaken}</div>

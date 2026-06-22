@@ -7,8 +7,6 @@ import { IoPerson } from "react-icons/io5";
 import { FaEye, FaEyeSlash, FaArrowRight } from "react-icons/fa";
 import Nav from './Nav';
 import Hero from './Hero';
-
-// ✅ IMPORT API
 import { loginWithEnquiry } from '../../services/fileMakerService';
 
 function Login() {
@@ -27,7 +25,6 @@ function Login() {
 
   const handleChange = (e) => {
     const { id, value } = e.target;
-
     setFields(prev => ({ ...prev, [id]: value }));
     setErrors(prev => ({ ...prev, [id]: '' }));
     setApiError('');
@@ -35,13 +32,9 @@ function Login() {
 
   const validate = () => {
     const e = {};
-
     if (!fields.email.trim()) e.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(fields.email))
-      e.email = 'Enter a valid email';
-
+    else if (!/\S+@\S+\.\S+/.test(fields.email)) e.email = 'Enter a valid email';
     if (!fields.password) e.password = 'Password is required';
-
     return e;
   };
 
@@ -58,27 +51,24 @@ function Login() {
     setApiError('');
 
     try {
-      // 🔐 CHECK CREDENTIALS DIRECTLY AGAINST THE ENQUIRY TABLE
-      // (matches how registration actually stores accounts now)
       const result = await loginWithEnquiry({
         email: fields.email.trim(),
         password: fields.password,
       });
 
-      // 💾 STORE USER
+      // 💾 STORE USER WITH EXPLICIT SELECTED ROLE Group
       localStorage.setItem(
         'crm_current_user',
         JSON.stringify({
           id: result.recordId,
           email: result.email,
           username: result.username,
-          role,
-          initials:
-            result.username?.slice(0, 2).toUpperCase(),
+          role: role, // Saves 'admin' or 'employee' based on the button clicked
+          initials: result.username?.slice(0, 2).toUpperCase(),
         })
       );
 
-      // 🚀 NAVIGATE
+      // 🚀 NAVIGATE CLEANLY BASED ON THE SESSION RULE Group
       if (role === 'employee') {
         navigate('/employeView/home');
       } else {
@@ -86,8 +76,6 @@ function Login() {
       }
 
     } catch (err) {
-      // loginWithEnquiry throws when no matching record was found,
-      // this is what actually blocks login for a nonexistent user.
       setApiError(err.message || 'Invalid email or password.');
     } finally {
       setLoading(false);
@@ -113,10 +101,9 @@ function Login() {
 
           <form onSubmit={handleSubmit} noValidate>
 
-            {/* ROLE */}
+            {/* ROLE OPTIONS */}
             <div className="field-group">
               <span className="field-label">Sign in as</span>
-
               <div className="role-options">
                 <button
                   type="button"
@@ -140,13 +127,9 @@ function Login() {
 
             {/* EMAIL */}
             <div className="field-group">
-              <label className="field-label" htmlFor="email">
-                Email
-              </label>
-
+              <label className="field-label" htmlFor="email">Email</label>
               <div className={`input-wrapper ${errors.email ? 'input-error' : ''}`}>
                 <span className="input-icon"><IoPerson /></span>
-
                 <input
                   id="email"
                   type="email"
@@ -155,21 +138,14 @@ function Login() {
                   onChange={handleChange}
                 />
               </div>
-
-              {errors.email && (
-                <p className="field-error">{errors.email}</p>
-              )}
+              {errors.email && <p className="field-error">{errors.email}</p>}
             </div>
 
             {/* PASSWORD */}
             <div className="field-group">
-              <label className="field-label" htmlFor="password">
-                Password
-              </label>
-
+              <label className="field-label" htmlFor="password">Password</label>
               <div className={`input-wrapper ${errors.password ? 'input-error' : ''}`}>
                 <span className="input-icon"><CiLock /></span>
-
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
@@ -177,7 +153,6 @@ function Login() {
                   value={fields.password}
                   onChange={handleChange}
                 />
-
                 <button
                   type="button"
                   className="input-trailing"
@@ -186,40 +161,24 @@ function Login() {
                   {showPassword ? <FaEye /> : <FaEyeSlash />}
                 </button>
               </div>
-
-              {errors.password && (
-                <p className="field-error">{errors.password}</p>
-              )}
+              {errors.password && <p className="field-error">{errors.password}</p>}
             </div>
 
-            {/* OPTIONS */}
             <div className="field-row">
               <label className="checkbox-label">
                 <input type="checkbox" /> Remember me
               </label>
-
-              <a href="#" className="link-accent">
-                Forgot password?
-              </a>
+              <a href="#" className="link-accent">Forgot password?</a>
             </div>
 
-            {/* SUBMIT */}
             <button type="submit" className="submit-btn" disabled={loading}>
-              {loading ? (
-                'Signing in...'
-              ) : (
-                <>
-                  Sign In <FaArrowRight className="arrowbtn" />
-                </>
-              )}
+              {loading ? 'Signing in...' : <>Sign In <FaArrowRight className="arrowbtn" /></>}
             </button>
           </form>
 
           <p className="toggle-mode">
             Don't have an account?{' '}
-            <Link to="/register" className="toggle-link">
-              Create one
-            </Link>
+            <Link to="/register" className="toggle-link">Create one</Link>
           </p>
 
           <div className="login-footer">

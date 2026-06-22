@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import '../styles/LeaveRequestForm.css';
 import { FaPaperPlane, FaExclamationTriangle } from 'react-icons/fa';
 import { previewLeaveOutcome } from './leaveUtils';
-import { saveLeaveRequest } from './leaveStorage';
+import { saveLeaveRequestToFM } from '../../../../services/leaves/leavesApi';
 
 const LEAVE_TYPES = ['Full Day', 'Half Day', 'Short Time'];
 const CATEGORIES = ['Casual', 'Medical', 'Unpaid'];
@@ -50,7 +50,7 @@ function LeaveRequestForm({ userId, leaves, onSubmitted }) {
     return e;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitted(false);
 
@@ -61,26 +61,28 @@ function LeaveRequestForm({ userId, leaves, onSubmitted }) {
     }
 
     const newLeave = {
-      id: `leave_${Date.now()}`,
       type,
       fromDate,
       toDate,
       category,
-      reason: reason.trim(),
-      status: 'Pending',
-      shortMinutes: type === 'Short Time' ? null : undefined,
+      reason: reason.trim()
     };
 
-    saveLeaveRequest(userId, newLeave);
-    setSubmitted(true);
-    setFromDate('');
-    setToDate('');
-    setReason('');
-    setType('Full Day');
-    setCategory('Casual');
-    setErrors({});
+    try {
+      await saveLeaveRequestToFM(userId, newLeave);
+      setSubmitted(true);
+      setFromDate('');
+      setToDate('');
+      setReason('');
+      setType('Full Day');
+      setCategory('Casual');
+      setErrors({});
 
-    if (onSubmitted) onSubmitted(newLeave);
+      if (onSubmitted) onSubmitted();
+    } catch (err) {
+      console.error(err);
+      setErrors({ server: 'Could not connect to database layout.' });
+    }
   };
 
   return (
@@ -94,6 +96,8 @@ function LeaveRequestForm({ userId, leaves, onSubmitted }) {
       )}
 
       <form onSubmit={handleSubmit} noValidate>
+        {errors.server && <div className="lr-field-error" style={{marginBottom: '10px'}}>{errors.server}</div>}
+        
         <div className="lr-field-group">
           <label className="lr-label" htmlFor="leaveType">Leave Type</label>
           <select id="leaveType" className="lr-select" value={type} onChange={(e) => setType(e.target.value)}>

@@ -10,7 +10,7 @@
 
 // ── Policy constants — adjust these if your actual rules differ ──────────
 export const ANNUAL_LEAVE_DAYS = 24;
-export const MONTHLY_PAID_LEAVES_PER_CATEGORY = 1; // 1 Casual + 1 Medical = 2 paid requests/month
+export const MONTHLY_PAID_LEAVES_PER_CATEGORY = 2; // 1 Casual + 1 Medical = 2 paid requests/month
 export const SHORT_MINUTES_PER_DEDUCTED_DAY = 8 * 60; // 8h accumulated short time = 1 day deducted
 
 function monthKey(dateStr) {

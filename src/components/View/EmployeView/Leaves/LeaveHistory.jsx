@@ -1,21 +1,11 @@
 import { useState, useMemo } from 'react';
 import '../styles/LeaveHistory.css';
-import { computePaidStatus } from './leaveUtils';
 
 const TABS = ['All', 'Approved', 'Pending'];
 
 function parseLocalDate(dateStr) {
   const [y, m, d] = dateStr.split('-').map(Number);
   return new Date(y, m - 1, d);
-}
-
-function formatDuration(minutes) {
-  if (!minutes) return '0m';
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  if (h === 0) return `${m}m`;
-  if (m === 0) return `${h}h`;
-  return `${h}h ${m}m`;
 }
 
 function formatDateLabel(dateStr) {
@@ -26,13 +16,48 @@ function formatMonthLabel(dateStr) {
   return parseLocalDate(dateStr).toLocaleDateString('en-US', { month: 'short' });
 }
 
-function leaveTitle(leave) {
-  if (leave.type === 'Short Time') return `Short Time · ${formatDuration(leave.shortMinutes)}`;
-  return leave.type;
+/**
+ * Groups flat single-day consecutive leave records from FileMaker into readable ranges.
+ */
+function groupConsecutiveLeaves(flatLeaves) {
+  if (!flatLeaves.length) return [];
+
+  // Sort oldest to newest to find consecutive days easily
+  const sorted = [...flatLeaves].sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
+  const groups = [];
+  
+  let currentGroup = { ...sorted[0] };
+
+  for (let i = 1; i < sorted.length; i++) {
+    const nextLeave = sorted[i];
+    const currentEnd = parseLocalDate(currentGroup.toDate);
+    const nextStart = parseLocalDate(nextLeave.fromDate);
+    
+    // Calculate difference in days
+    const diffTime = Math.abs(nextStart - currentEnd);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    // If same type, category, status, and it's the sequential next calendar day
+    if (
+      nextLeave.type === currentGroup.type &&
+      nextLeave.category === currentGroup.category &&
+      nextLeave.status === currentGroup.status &&
+      diffDays === 1
+    ) {
+      currentGroup.toDate = nextLeave.toDate; // Expand the range
+    } else {
+      groups.push(currentGroup);
+      currentGroup = { ...nextLeave };
+    }
+  }
+  groups.push(currentGroup);
+
+  // Return newest first for history presentation
+  return groups.sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate));
 }
 
 function leaveDateLabel(leave) {
-  if (leave.type === 'Full Day' && leave.toDate && leave.toDate !== leave.fromDate) {
+  if (leave.fromDate !== leave.toDate) {
     const fromDay = parseLocalDate(leave.fromDate).getDate();
     const toDay = parseLocalDate(leave.toDate).getDate();
     return `${fromDay}–${toDay} ${formatMonthLabel(leave.toDate)}`;
@@ -43,19 +68,19 @@ function leaveDateLabel(leave) {
 function LeaveHistory({ leaves, year }) {
   const [activeTab, setActiveTab] = useState('All');
 
+  // Filter current year's leaves
   const yearLeaves = useMemo(
     () => leaves.filter((l) => l.fromDate.startsWith(String(year))),
     [leaves, year]
   );
 
-  const paidMap = useMemo(() => computePaidStatus(yearLeaves), [yearLeaves]);
+  // Group the continuous records together dynamically
+  const groupedAndSorted = useMemo(() => groupConsecutiveLeaves(yearLeaves), [yearLeaves]);
 
-  const sorted = useMemo(
-    () => [...yearLeaves].sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate)),
-    [yearLeaves]
-  );
-
-  const filtered = activeTab === 'All' ? sorted : sorted.filter((l) => l.status === activeTab);
+  // Filter by active tab status
+  const filtered = activeTab === 'All' 
+    ? groupedAndSorted 
+    : groupedAndSorted.filter((l) => l.status === activeTab);
 
   return (
     <div className="lh-card">
@@ -76,22 +101,18 @@ function LeaveHistory({ leaves, year }) {
       <div className="lh-list">
         {filtered.length === 0 && <p className="lh-empty">No leave records here yet.</p>}
 
-        {filtered.map((leave) => {
-          const isUnpaid = paidMap[leave.id] === false;
-          const isShort = leave.type === 'Short Time';
-          const showDeductedNote = !isShort && leave.status === 'Approved' && isUnpaid;
+        {filtered.map((leave, index) => {
+          const isUnpaid = leave.category === 'Unpaid';
+          const showDeductedNote = leave.status === 'Approved' && isUnpaid;
           const showPendingNote = leave.status === 'Pending';
 
           return (
-            <div key={leave.id} className="lh-row">
+            <div key={`${leave.id}-${index}`} className="lh-row">
               <div className="lh-date">{leaveDateLabel(leave)}</div>
 
               <div className="lh-main">
-                <div className="lh-leave-title">{leaveTitle(leave)}</div>
-
-                {isShort ? (
-                  <div className="lh-subtitle">Goes toward 8h short pool</div>
-                ) : showDeductedNote ? (
+                <div className="lh-leave-title">{leave.type}</div>
+                {showDeductedNote ? (
                   <>
                     <div className="lh-subtitle">{leave.category}</div>
                     <div className="lh-deducted-note">

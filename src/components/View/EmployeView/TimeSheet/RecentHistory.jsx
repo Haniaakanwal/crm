@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { LuArrowRight } from 'react-icons/lu';
+import { getTimesheetRange } from '../../../../services/timesheet/timesheetApi';
 
 // ── Helpers ──────────────────────────────────────────────────────────
 const fmtHHMM = (ts) => {
@@ -26,48 +27,51 @@ const fmtDateLabel = (dateStr) => {
   return { day: `${day} ${month}`, weekday };
 };
 
-const isToday = (dateStr) => dateStr === new Date().toISOString().slice(0, 10);
+// toISOString() converts to UTC first, which can roll the date backward
+// by one day for timezones ahead of UTC (e.g. Pakistan, UTC+5). Build the
+// "YYYY-MM-DD" key from local date components instead.
+const toLocalDateKey = (d) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+const todayKey = () => toLocalDateKey(new Date());
+const isToday = (dateStr) => dateStr === todayKey();
 
 const FULL = 8 * 3600 * 1000;
-const SHORT_MIN = 6 * 3600 * 1000;
 
-// ── Build entries from localStorage — only days the user actually worked ──
-const getRecentEntries = (userId, lookbackDays = 14) => {
-  const entries = [];
-  const today = new Date();
-
-  for (let i = 0; i < lookbackDays; i++) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    const dateStr = d.toISOString().slice(0, 10);
-    const key = `crm_timesheet_${userId}_${dateStr}`;
-
-    try {
-      const raw = localStorage.getItem(key);
-      if (!raw) continue;
-      const entry = JSON.parse(raw);
-      if (!entry.checkIn) continue; // only count days they actually checked in
-
-      const totalBreakMs = (entry.breaks || []).reduce((acc, b) => {
+// ── Convert FM range entries into the row shape this component renders ──
+// (mirrors the previous localStorage-derived shape so the JSX below is
+// unchanged: { dateStr, entry, totalBreakMs, netMs, status })
+const toRows = (fmEntries) => {
+  return fmEntries
+    .filter((e) => !!e.checkIn) // only days the user actually checked in
+    .map((e) => {
+      const totalBreakMs = (e.breaks || []).reduce((acc, b) => {
         return acc + ((b.end || b.start) - b.start);
       }, 0);
 
-      const endTime = entry.checkOut || (isToday(dateStr) ? Date.now() : null);
+      const endTime = e.checkOut || (isToday(e.dateStr) ? Date.now() : null);
       const netMs = endTime
-        ? Math.max(0, (endTime - entry.checkIn) - totalBreakMs)
+        ? Math.max(0, (endTime - e.checkIn) - totalBreakMs)
         : null;
 
       let status = null;
-      if (isToday(dateStr) && !entry.checkOut) status = 'live';
+      if (isToday(e.dateStr) && !e.checkOut) status = 'live';
       else if (netMs === null) status = null;
       else if (netMs >= FULL) status = 'full';
       else status = 'short';
 
-      entries.push({ dateStr, entry, totalBreakMs, netMs, status });
-    } catch { continue; }
-  }
-
-  return entries; // already newest-first since loop counts down from today
+      return {
+        dateStr: e.dateStr,
+        entry: { checkIn: e.checkIn, checkOut: e.checkOut },
+        totalBreakMs,
+        netMs,
+        status,
+      };
+    });
 };
 
 // ── Status badge ─────────────────────────────────────────────────────
@@ -91,14 +95,46 @@ const StatusBadge = ({ status }) => {
 
 // ── Component ─────────────────────────────────────────────────────────
 const PAGE_SIZE = 7;
+const LOOKBACK_DAYS = 60;
 
 function RecentHistory({ userId = 'guest' }) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Pull a wide lookback window (e.g. 60 days) so "Load more" has real data to reveal
-  const allEntries = getRecentEntries(userId, 60);
-  const totalWorkedDays = allEntries.length; // dynamic — only real worked days
-  const visibleEntries = allEntries.slice(0, visibleCount);
+  useEffect(() => {
+    let cancelled = false;
+
+    setLoading(true);
+    setError(null);
+
+    const today = new Date();
+    const start = new Date(today);
+    start.setDate(today.getDate() - LOOKBACK_DAYS);
+
+    const startKey = toLocalDateKey(start);
+    const endKey = toLocalDateKey(today);
+
+    getTimesheetRange(userId, startKey, endKey)
+      .then((fmEntries) => {
+        if (cancelled) return;
+        setRows(toRows(fmEntries)); // getTimesheetRange already returns newest-first
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error('Failed to load recent history from FileMaker:', err);
+        setError('Could not load your recent history.');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [userId]);
+
+  const totalWorkedDays = rows.length;
+  const visibleEntries = rows.slice(0, visibleCount);
   const hasMore = visibleCount < totalWorkedDays;
 
   return (
@@ -114,11 +150,19 @@ function RecentHistory({ userId = 'guest' }) {
       </div>
 
       <div className="rh-list">
-        {visibleEntries.length === 0 && (
+        {loading && (
+          <div className="rh-empty">Loading history…</div>
+        )}
+
+        {!loading && error && (
+          <div className="rh-empty">{error}</div>
+        )}
+
+        {!loading && !error && visibleEntries.length === 0 && (
           <div className="rh-empty">No history yet — check in to start tracking.</div>
         )}
 
-        {visibleEntries.map(({ dateStr, entry, totalBreakMs, netMs, status }) => {
+        {!loading && !error && visibleEntries.map(({ dateStr, entry, totalBreakMs, netMs, status }) => {
           const { day, weekday } = fmtDateLabel(dateStr);
           const todayFlag = isToday(dateStr);
 
@@ -161,7 +205,7 @@ function RecentHistory({ userId = 'guest' }) {
       </div>
 
       {/* ── Footer: Showing X of Y · Load more ── */}
-      {totalWorkedDays > 0 && (
+      {!loading && !error && totalWorkedDays > 0 && (
         <div className="rh-footer">
           <span className="rh-footer-text">
             Showing {visibleEntries.length} of {totalWorkedDays} days

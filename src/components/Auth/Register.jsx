@@ -7,7 +7,9 @@ import { LuCrown } from "react-icons/lu";
 import { CiLock } from "react-icons/ci";
 import { IoPerson } from "react-icons/io5";
 import { FaEye, FaEyeSlash, FaArrowRight, FaRegCalendarAlt } from "react-icons/fa";
+
 import { registerWithEnquiry } from '../../services/fileMakerService';
+import { addToEmployeeDirectory } from '../../components/View/AdminView/Timesheet/employeeDirectory'; // ← adjust path to match your structure
 
 
 function Register() {
@@ -78,6 +80,13 @@ const handleSubmit = async (e) => {
       setApiError('Could not create account record');
       return;
     }
+
+    addToEmployeeDirectory({
+      id: recordId,
+      username: fields.username.trim(),
+      email: fields.email.trim().toLowerCase(),
+      role,
+    });
 
     setSuccessMsg(`Account created for ${fields.username.trim()}`);
     setFields({

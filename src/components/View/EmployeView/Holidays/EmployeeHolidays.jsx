@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import '../styles/EmployeeHolidays.css';
 import { LuMoon, LuBriefcase, LuFlag, LuStar, LuPartyPopper } from 'react-icons/lu';
-import { getHolidays } from './holidayStorage';
+// Import the seeding process along with your fetch function
+import { fetchPublicHolidaysFromFM, seedHolidaysToFileMaker } from '../../../../services/holidays/holidaysApi';
 
 const ICON_MAP = { moon: LuMoon, briefcase: LuBriefcase, flag: LuFlag, star: LuStar };
 
@@ -12,21 +13,39 @@ function HolidayIcon({ iconKey }) {
 
 function EmployeeHolidays() {
   const [holidays, setHolidays] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadHolidays = () => {
+    fetchPublicHolidaysFromFM()
+      .then(async (records) => {
+        // If FileMaker returns empty, run seed once to write data automatically
+        if (records.length === 0) {
+          console.log("Database layout table is empty. Running seeding routine...");
+          await seedHolidaysToFileMaker();
+          // Re-fetch now that records have been written to FileMaker
+          const freshRecords = await fetchPublicHolidaysFromFM();
+          setHolidays(freshRecords);
+        } else {
+          setHolidays(records);
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Failed loading holiday data:', err);
+        setLoading(false);
+      });
+  };
 
   useEffect(() => {
-    setHolidays(getHolidays());
-
-    // If an admin edits holidays in another tab/window, this picks it up
-    // live without the employee needing to refresh.
-    const handleStorageChange = (e) => {
-      if (!e.key || e.key === 'crm_company_holidays') setHolidays(getHolidays());
-    };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    loadHolidays();
   }, []);
 
   const sorted = [...holidays].sort((a, b) => new Date(a.date) - new Date(b.date));
   const year = sorted[0] ? new Date(sorted[0].date).getFullYear() : new Date().getFullYear();
+
+  if (loading) {
+    return <div className="loading-spinner" style={{ padding: '40px', color: '#fff' }}>Loading Company Calendar...</div>;
+  }
 
   return (
     <div className="eh-page">
@@ -48,7 +67,6 @@ function EmployeeHolidays() {
             </div>
           </div>
         ))}
-        {sorted.length === 0 && <p className="eh-empty">No holidays have been published yet.</p>}
       </div>
     </div>
   );

@@ -1,23 +1,26 @@
 import { useEffect, useState } from 'react';
 import './styles/EmployeeHome.css';
 import { LuClock, LuCalendarOff, LuLaptop, LuStar, LuInfo } from 'react-icons/lu';
-import { getStoredLeaves, getShortTimeLogs } from './Leaves/leaveStorage';
 import { calculateShortSummary } from './Leaves/shortHoursUtils';
-import { calculateLeaveSummary, MONTHLY_PAID_LEAVES_PER_CATEGORY, SHORT_MINUTES_PER_DEDUCTED_DAY } from './Leaves/leaveUtils';
-import { getHolidays } from './Holidays/holidayStorage';
+import { calculateLeaveSummary } from './Leaves/leaveUtils';
+import { loadTimesheetFromFM, getTimesheetRange } from '../../../services/timesheet/timesheetApi';
+import { getEmployeeLeaves, getLeaveBalanceSummary } from '../../../services/leaves/leavesApi';
+import { fetchPublicHolidaysFromFM } from '../../../services/holidays/holidaysApi';
 import { Link } from 'react-router';
 
+const todayKey = () => {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
 
-const todayKey = () => new Date().toISOString().slice(0, 10);
-const timesheetKey = (userId) => `crm_timesheet_${userId}_${todayKey()}`;
-
-function loadTodaysEntry(userId) {
-  try {
-    const raw = localStorage.getItem(timesheetKey(userId));
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
+function yearBounds(year) {
+  return {
+    startKey: `${year}-01-01`,
+    endKey: `${year}-12-31`,
+  };
 }
 
 function fmtHHMM(ts) {
@@ -28,6 +31,7 @@ function fmtHHMM(ts) {
   h = h % 12 || 12;
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} ${ap}`;
 }
+
 function deriveDisplayName(user) {
   if (user.username) return user.username;
   if (user.email) {
@@ -49,6 +53,7 @@ function getInitials(user, displayName) {
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[1][0]).toUpperCase();
 }
+
 function netElapsedMs(entry) {
   if (!entry || !entry.checkIn) return 0;
   const breaksMs = (entry.breaks || []).reduce((acc, b) => acc + ((b.end || Date.now()) - b.start), 0)
@@ -82,13 +87,8 @@ function getNextHoliday(holidays) {
   return { ...next, daysAway };
 }
 
-function ordinalSuffix(n) {
-  const s = ['th', 'st', 'nd', 'rd'];
-  const v = n % 100;
-  return n + (s[(v - 20) % 10] || s[v] || s[0]);
-}
-
 function formatDays(value) {
+  if (value === undefined || value === null) return '0';
   if (Number.isInteger(value)) return String(value);
   return value.toFixed(1);
 }
@@ -100,44 +100,82 @@ function getGreeting() {
   return 'Good evening';
 }
 
-function EmployeeHome({ onNavigateTimesheet }) {
+function EmployeeHome() {
   const user = JSON.parse(localStorage.getItem('crm_current_user') || '{}');
   const userId = user.id || user.email || 'guest';
-  // Assumes a `name` field on the stored user — change this line if yours differs.
 
-const displayName = deriveDisplayName(user);
-const initials = getInitials(user, displayName);
-
+  const displayName = deriveDisplayName(user);
+  const initials = getInitials(user, displayName);
 
   const [entry, setEntry] = useState(null);
   const [leaves, setLeaves] = useState([]);
-  const [shortLogs, setShortLogs] = useState([]);
+  const [fmBalance, setFmBalance] = useState(null);
+  const [yearEntries, setYearEntries] = useState([]);
   const [holidays, setHolidays] = useState([]);
-
-  useEffect(() => {
-    setEntry(loadTodaysEntry(userId));
-    setLeaves(getStoredLeaves(userId));
-    setShortLogs(getShortTimeLogs(userId));
-    setHolidays(getHolidays());
-
-    const id = setInterval(() => setEntry(loadTodaysEntry(userId)), 60000); // refresh net hours every minute
-    return () => clearInterval(id);
-  }, [userId]);
 
   const now = new Date();
   const year = now.getFullYear();
   const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
-  const shortSummary = calculateShortSummary(shortLogs, year);
-  const leaveSummary = calculateLeaveSummary(leaves, year, shortSummary);
+  // 1. Live real-time active timesheet counters from FileMaker
+  useEffect(() => {
+    let cancelled = false;
+    const loadToday = () => {
+      loadTimesheetFromFM(userId, todayKey())
+        .then((loaded) => { if (!cancelled) setEntry(loaded); })
+        .catch((err) => console.error('EmployeeHome: failed to load today\'s entry:', err));
+    };
+
+    loadToday();
+    const id = setInterval(loadToday, 60000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [userId]);
+
+  // 2. Load Leaves, Balances, and Global Public Holidays from FileMaker layouts
+  useEffect(() => {
+    let cancelled = false;
+
+    Promise.all([
+      getEmployeeLeaves(userId),
+      getLeaveBalanceSummary(userId, year),
+      fetchPublicHolidaysFromFM()
+    ])
+      .then(([records, balance, holidayRecords]) => {
+        if (!cancelled) {
+          setLeaves(records);
+          setFmBalance(balance);
+          setHolidays(holidayRecords);
+        }
+      })
+      .catch((err) => console.error('EmployeeHome: failed to connect to layout contexts:', err));
+
+    return () => { cancelled = true; };
+  }, [userId, year]);
+
+  // 3. Load entire year window logs to evaluate short hour summaries
+  useEffect(() => {
+    let cancelled = false;
+    const { startKey, endKey } = yearBounds(year);
+
+    getTimesheetRange(userId, startKey, endKey)
+      .then((entries) => { if (!cancelled) setYearEntries(entries); })
+      .catch((err) => console.error('EmployeeHome: failed to load range timeline details:', err));
+
+    return () => { cancelled = true; };
+  }, [userId, year]);
+
+  const shortSummary = calculateShortSummary(yearEntries, year);
+  
+  // Use fallback local runtime calculation if the primary LeaveBalance table record row is missing
+  const leaveSummary = fmBalance || calculateLeaveSummary(leaves, year, shortSummary);
 
   const isCheckedIn = !!entry?.checkIn;
   const isCheckedOut = !!entry?.checkOut;
   const netMs = netElapsedMs(entry);
   const nextHoliday = getNextHoliday(holidays);
 
-  const totalPaidPerMonth = MONTHLY_PAID_LEAVES_PER_CATEGORY * 2;
-  const policyText = `You are allowed ${totalPaidPerMonth} paid leaves per month (${MONTHLY_PAID_LEAVES_PER_CATEGORY} Casual + ${MONTHLY_PAID_LEAVES_PER_CATEGORY} Medical). The ${ordinalSuffix(totalPaidPerMonth + 1)} leave in any month is automatically unpaid. ${SHORT_MINUTES_PER_DEDUCTED_DAY / 60} accumulated short hours = 1 paid leave deducted from your annual balance.`;
+  // Policy text configuration matching the 3rd rule alignment check
+  const policyText = `You are allowed 2 paid leaves per month (1 Casual + 1 Medical). The 3rd leave in any month is automatically unpaid. 8 accumulated short hours = 1 paid leave deducted from your annual balance.`;
 
   return (
     <div className="eo-page">
@@ -157,8 +195,8 @@ const initials = getInitials(user, displayName);
           </div>
         </div>
       </div>
- <div className="eo-grid">
 
+      <div className="eo-grid">
         <Link
           to="/employeView/timesheet"
           className="eo-stat-card eo-clickable"
@@ -178,7 +216,7 @@ const initials = getInitials(user, displayName);
           <div className="eo-stat-icon eo-icon-green"><LuCalendarOff size={18} /></div>
           <div className="eo-stat-label">Leave Balance {year}</div>
           <div className="eo-stat-value eo-value-green">{formatDays(leaveSummary.remaining)} days</div>
-          <div className="eo-stat-sub">Remaining of {leaveSummary.totalDays} allowed</div>
+          <div className="eo-stat-sub">Remaining of {leaveSummary.totalDays || 24} allowed</div>
         </Link>
 
         <Link

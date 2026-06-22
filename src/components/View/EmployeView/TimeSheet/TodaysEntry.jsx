@@ -1,19 +1,16 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  LuPhone, LuClock, LuLogIn, LuLogOut, LuPlay,LuCircleStop , LuTriangleAlert } from 'react-icons/lu';
-import { logShortTime } from '../Leaves/leaveStorage';
+import { useState, useEffect, useCallback } from 'react';
+import { LuPhone, LuClock, LuLogIn, LuLogOut, LuPlay, LuCircleStop, LuTriangleAlert } from 'react-icons/lu';
+import { loadTimesheetFromFM, syncTimesheetEntry } from '../../../../services/timesheet/timesheetApi';
 
-// ── Constants ────────────────────────────────────────────────────────
-const REQUIRED_SECONDS = 8 * 3600; // 8 hours
-const BREAK_LIMIT_SECONDS = 60 * 60; // 60 min
+const REQUIRED_SECONDS = 8 * 3600;
+const BREAK_LIMIT_SECONDS = 60 * 60;
 
-// ── Helpers ──────────────────────────────────────────────────────────
 const now = () => Date.now();
 
 const fmt = (ms) => {
   const totalSec = Math.floor(ms / 1000);
   const h = Math.floor(totalSec / 3600);
-  const m = Math.floor((totalSec % 3600) / 60);
+  const m = Math.floor((totalSec % 3600) / 60)
   const s = totalSec % 60;
   if (h > 0) return `${h}h ${String(m).padStart(2, '0')}m`;
   return `${m}m ${String(s).padStart(2, '0')}s`;
@@ -28,65 +25,80 @@ const fmtHHMM = (ts) => {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} ${ap}`;
 };
 
-const todayKey = () => new Date().toISOString().slice(0, 10); // "2026-06-16"
-const storageKey = (userId) => `crm_timesheet_${userId}_${todayKey()}`;
-
-const loadEntry = (userId) => {
-  try {
-    const raw = localStorage.getItem(storageKey(userId));
-    return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
-};
-
-const saveEntry = (userId, entry) => {
-  localStorage.setItem(storageKey(userId), JSON.stringify(entry));
+// toISOString() converts to UTC first, which can roll the date backward
+// by one day for timezones ahead of UTC (e.g. Pakistan, UTC+5). Build the
+// "YYYY-MM-DD" key from local date components instead so it always
+// matches the dateStr FileMaker entries actually use.
+const todayKey = () => {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 };
 
 const defaultEntry = () => ({
   checkIn: null,
   checkOut: null,
-  breaks: [],          // [{ start, end }]
-  activeBreak: null,   // { start }
+  breaks: [],
+  activeBreak: null,
 });
 
-// ── Component ─────────────────────────────────────────────────────────
 function TodaysEntry({ userId = 'default_user' }) {
-  const [entry, setEntry] = useState(() => loadEntry(userId) || defaultEntry());
-  const [tick, setTick] = useState(0);
-  const intervalRef = useRef(null);
+  const [entry, setEntry] = useState(defaultEntry);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [actionPending, setActionPending] = useState(false);
+  const [actionError, setActionError] = useState(null);
+  const [, setTick] = useState(0);
 
-  // Live ticker — updates every second when checked in and not checked out
+  // Tick once a second so running totals (elapsed, break duration) stay live
   useEffect(() => {
-    intervalRef.current = setInterval(() => setTick(t => t + 1), 1000);
-    return () => clearInterval(intervalRef.current);
+    const id = setInterval(() => setTick(t => t + 1), 1000);
+    return () => clearInterval(id);
   }, []);
 
-  // Persist on every change
+  // Load today's entry from FileMaker on mount (and whenever userId changes)
   useEffect(() => {
-    saveEntry(userId, entry);
-  }, [entry, userId]);
+    let cancelled = false;
 
-  // ── Derived values ─────────────────────────────────────────────────
-  const isCheckedIn  = !!entry.checkIn;
+    setLoading(true);
+    setLoadError(null);
+
+    loadTimesheetFromFM(userId, todayKey())
+      .then((loaded) => {
+        if (cancelled) return;
+        setEntry(loaded || defaultEntry());
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error('Failed to load timesheet from FileMaker:', err);
+        setLoadError('Could not load today\u2019s entry. Please refresh to try again.');
+        setEntry(defaultEntry());
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [userId]);
+
+  const isCheckedIn = !!entry.checkIn;
   const isCheckedOut = !!entry.checkOut;
   const onActiveBreak = !!entry.activeBreak;
 
-  // Total break time (ms)
   const totalBreakMs = entry.breaks.reduce((acc, b) => {
     return acc + ((b.end || now()) - b.start);
   }, 0) + (entry.activeBreak ? (now() - entry.activeBreak.start) : 0);
 
-  // Net work time (ms) = elapsed since check-in minus breaks
   const elapsedMs = isCheckedIn
     ? ((isCheckedOut ? entry.checkOut : now()) - entry.checkIn) - totalBreakMs
     : 0;
 
   const remainingMs = Math.max(0, REQUIRED_SECONDS * 1000 - elapsedMs);
   const progressPct = Math.min(100, (elapsedMs / (REQUIRED_SECONDS * 1000)) * 100);
-
   const breakOverLimit = totalBreakMs > BREAK_LIMIT_SECONDS * 1000;
 
-  // Status label
   const status = !isCheckedIn ? 'Active'
     : isCheckedOut ? 'Checked Out'
     : 'In Progress';
@@ -96,50 +108,84 @@ function TodaysEntry({ userId = 'default_user' }) {
     : 'var(--success-green)';
 
   // ── Actions ────────────────────────────────────────────────────────
+  // Each action computes the intended new state, syncs it to FileMaker,
+  // then adopts whatever FileMaker actually persisted as the new source
+  // of truth (rather than trusting the optimistic local value forever).
+
+  const runSync = useCallback(async (nextEntry) => {
+    setActionPending(true);
+    setActionError(null);
+    try {
+      const persisted = await syncTimesheetEntry(userId, todayKey(), nextEntry);
+      setEntry(persisted || nextEntry);
+    } catch (err) {
+      console.error('Failed to sync timesheet entry:', err);
+      setActionError('That action didn\u2019t save — please try again.');
+      // Roll back to last-known-good by re-loading from FM
+      try {
+        const reloaded = await loadTimesheetFromFM(userId, todayKey());
+        setEntry(reloaded || defaultEntry());
+      } catch {
+        // If even the reload fails, leave entry as the last good state.
+      }
+    } finally {
+      setActionPending(false);
+    }
+  }, [userId]);
+
   const handleCheckIn = useCallback(() => {
-    setEntry(e => ({ ...e, checkIn: now() }));
-  }, []);
+    if (actionPending) return;
+    const nextEntry = { ...entry, checkIn: now() };
+    setEntry(nextEntry); // optimistic UI
+    runSync(nextEntry);
+  }, [entry, actionPending, runSync]);
 
-const handleCheckOut = useCallback(() => {
-  if (onActiveBreak || isCheckedOut) return; // must end break first; guard double-checkout
-
-  const checkOutTime = now();
-  const finalElapsedMs = (checkOutTime - entry.checkIn) - totalBreakMs;
-  const shortfallMs = REQUIRED_SECONDS * 1000 - finalElapsedMs;
-  const shortMinutes = shortfallMs > 0 ? Math.round(shortfallMs / 60000) : 0;
-
-  if (shortMinutes > 0) {
-    logShortTime(userId, shortMinutes, todayKey());
-  }
-
-  setEntry(e => ({ ...e, checkOut: checkOutTime }));
-}, [onActiveBreak, isCheckedOut, entry, totalBreakMs, userId]);
+  const handleCheckOut = useCallback(() => {
+    if (actionPending || onActiveBreak || isCheckedOut) return;
+    const nextEntry = { ...entry, checkOut: now() };
+    setEntry(nextEntry);
+    runSync(nextEntry);
+  }, [actionPending, onActiveBreak, isCheckedOut, entry, runSync]);
 
   const handleStartBreak = useCallback(() => {
-    setEntry(e => ({ ...e, activeBreak: { start: now() } }));
-  }, []);
+    if (actionPending || onActiveBreak || !isCheckedIn || isCheckedOut) return;
+    const nextEntry = { ...entry, activeBreak: { start: now() } };
+    setEntry(nextEntry);
+    runSync(nextEntry);
+  }, [actionPending, onActiveBreak, isCheckedIn, isCheckedOut, entry, runSync]);
 
   const handleEndBreak = useCallback(() => {
-    setEntry(e => {
-      if (!e.activeBreak) return e;
-      const completedBreak = { start: e.activeBreak.start, end: now() };
-      return {
-        ...e,
-        breaks: [...e.breaks, completedBreak],
-        activeBreak: null,
-      };
-    });
-  }, []);
+    if (actionPending || !entry.activeBreak) return;
+    const completedBreak = { start: entry.activeBreak.start, end: now() };
+    const nextEntry = {
+      ...entry,
+      breaks: [...entry.breaks, completedBreak],
+      activeBreak: null,
+    };
+    setEntry(nextEntry);
+    runSync(nextEntry);
+  }, [actionPending, entry, runSync]);
 
-  // ── Date string ────────────────────────────────────────────────────
   const dateStr = new Date().toLocaleDateString('en-US', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
   });
 
+  if (loading) {
+    return (
+      <div className="te-card">
+        <div className="te-header">
+          <div className="te-header-left">
+            <h3 className="te-title">Today's Entry</h3>
+            <p className="te-subtitle">Loading today\u2019s entry…</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="te-card">
 
-      {/* ── Header ── */}
       <div className="te-header">
         <div className="te-header-left">
           <h3 className="te-title">Today's Entry</h3>
@@ -152,7 +198,13 @@ const handleCheckOut = useCallback(() => {
         </span>
       </div>
 
-      {/* ── Check In / Out boxes ── */}
+      {loadError && (
+        <div className="te-break-warning">
+          <LuTriangleAlert size={13} className='warning' />
+          {loadError}
+        </div>
+      )}
+
       <div className="te-inout-row">
         <div className={`te-inout-box ${isCheckedIn ? 'te-inout-filled' : ''}`}>
           <span className="te-inout-label">CHECK IN</span>
@@ -161,7 +213,7 @@ const handleCheckOut = useCallback(() => {
           </span>
           {isCheckedIn && (
             <span className="te-inout-sub">
-              +{Math.round((entry.checkIn - new Date().setHours(9,0,0,0)) / 60000)}m from 9:00 AM
+              +{Math.round((entry.checkIn - new Date().setHours(9, 0, 0, 0)) / 60000)}m from 9:00 AM
             </span>
           )}
         </div>
@@ -175,7 +227,6 @@ const handleCheckOut = useCallback(() => {
         </div>
       </div>
 
-      {/* ── Net Hours ── */}
       {isCheckedIn && (
         <div className="te-net-section">
           <div className="te-net-row">
@@ -195,7 +246,6 @@ const handleCheckOut = useCallback(() => {
         </div>
       )}
 
-      {/* ── Breaks ── */}
       {isCheckedIn && (
         <div className="te-breaks-section">
           <div className="te-breaks-header">
@@ -223,16 +273,14 @@ const handleCheckOut = useCallback(() => {
             </div>
           )}
 
-      
-          {/* Break action buttons */}
           {!isCheckedOut && (
             <div className="te-break-actions">
               {onActiveBreak ? (
-                <button className="te-btn te-btn-end" onClick={handleEndBreak}>
+                <button className="te-btn te-btn-end" onClick={handleEndBreak} disabled={actionPending}>
                   <LuCircleStop size={14} /> End Break
                 </button>
               ) : (
-                <button className="te-btn te-btn-new" onClick={handleStartBreak}>
+                <button className="te-btn te-btn-new" onClick={handleStartBreak} disabled={actionPending}>
                   <LuPlay size={14} /> + New Break
                 </button>
               )}
@@ -241,10 +289,13 @@ const handleCheckOut = useCallback(() => {
         </div>
       )}
 
-      {/* ── Main CTA ── */}
       <div className="te-cta-section">
+        {actionError && (
+          <p className="te-cta-hint">{actionError}</p>
+        )}
+
         {!isCheckedIn && (
-          <button className="te-cta-btn te-cta-checkin" onClick={handleCheckIn}>
+          <button className="te-cta-btn te-cta-checkin" onClick={handleCheckIn} disabled={actionPending}>
             <LuLogIn size={16} />
             Check In for Today
           </button>
@@ -255,7 +306,7 @@ const handleCheckOut = useCallback(() => {
             <button
               className={`te-cta-btn te-cta-checkout ${onActiveBreak ? 'te-cta-disabled' : ''}`}
               onClick={handleCheckOut}
-              disabled={onActiveBreak}
+              disabled={onActiveBreak || actionPending}
             >
               <LuLogOut size={16} />
               Check Out for Today
@@ -272,14 +323,13 @@ const handleCheckOut = useCallback(() => {
           </div>
         )}
 
-            {breakOverLimit && (
-            <div className="te-break-warning">
-              <LuTriangleAlert size={13} className='warning'/>
-              Break limit: 60 min/day. You've used {fmt(totalBreakMs)}.
-              Extra time deducted from net hours.
-            </div>
-          )}
-
+        {breakOverLimit && (
+          <div className="te-break-warning">
+            <LuTriangleAlert size={13} className='warning' />
+            Break limit: 60 min/day. You've used {fmt(totalBreakMs)}.
+            Extra time deducted from net hours.
+          </div>
+        )}
       </div>
 
     </div>

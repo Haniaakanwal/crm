@@ -1,5 +1,19 @@
+import { useEffect, useState } from 'react';
+import { getTimesheetRange } from '../../../../services/timesheet/timesheetApi';
+
 const FULL = 8 * 3600 * 1000;
-const SHORT_MIN = 6 * 3600 * 1000;
+
+// toISOString() converts to UTC first, which can roll the date backward
+// by one day for timezones ahead of UTC (e.g. Pakistan, UTC+5) — a local
+// midnight Date can serialize to the previous day's UTC date. Build the
+// "YYYY-MM-DD" key from local components instead so it always matches
+// the dateStr FileMaker entries actually use.
+const toLocalDateKey = (d) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
 
 const fmtHours = (ms) => {
   const h = ms / 3600000;
@@ -9,12 +23,16 @@ const fmtHours = (ms) => {
 const monthLabel = () =>
   new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' });
 
-// ── Calculate stats from this calendar month's entries ─────────────────
-const getMonthlyStats = (userId) => {
+// ── Calculate stats from this calendar month's FileMaker entries ───────
+// `entries` is the canonical shape from getTimesheetRange:
+//   { dateStr, checkIn, checkOut, breaks, ... }
+const getMonthlyStats = (entries) => {
   const today = new Date();
   const year = today.getFullYear();
   const month = today.getMonth();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const todayStr = toLocalDateKey(today);
+
+  const entryByDate = new Map(entries.map((e) => [e.dateStr, e]));
 
   let present = 0;
   let shortCount = 0;
@@ -23,47 +41,67 @@ const getMonthlyStats = (userId) => {
 
   for (let day = 1; day <= today.getDate(); day++) {
     const d = new Date(year, month, day);
-    const dateStr = d.toISOString().slice(0, 10);
-    const key = `crm_timesheet_${userId}_${dateStr}`;
+    const dateStr = toLocalDateKey(d);
 
     const isWeekend = d.getDay() === 0; // Sunday off — adjust if needed
     if (isWeekend) continue;
 
-    try {
-      const raw = localStorage.getItem(key);
-      if (!raw) {
-        // Working day with no entry = absent (skip today, still in progress)
-        if (dateStr !== today.toISOString().slice(0, 10)) absent++;
-        continue;
-      }
+    const entry = entryByDate.get(dateStr);
 
-      const entry = JSON.parse(raw);
-      if (!entry.checkIn) {
-        if (dateStr !== today.toISOString().slice(0, 10)) absent++;
-        continue;
-      }
+    if (!entry || !entry.checkIn) {
+      // Working day with no entry = absent (skip today, still in progress)
+      if (dateStr !== todayStr) absent++;
+      continue;
+    }
 
-      present++;
+    present++;
 
-      const totalBreakMs = (entry.breaks || []).reduce((acc, b) => {
-        return acc + ((b.end || b.start) - b.start);
-      }, 0);
+    const totalBreakMs = (entry.breaks || []).reduce((acc, b) => {
+      return acc + ((b.end || b.start) - b.start);
+    }, 0);
 
-      const endTime = entry.checkOut || Date.now();
-      const netMs = Math.max(0, (endTime - entry.checkIn) - totalBreakMs);
+    const endTime = entry.checkOut || Date.now();
+    const netMs = Math.max(0, (endTime - entry.checkIn) - totalBreakMs);
 
-      if (netMs < FULL) {
-        shortCount++;
-        shortTotalMs += (FULL - netMs); // hours short of target
-      }
-    } catch { continue; }
+    if (netMs < FULL) {
+      shortCount++;
+      shortTotalMs += (FULL - netMs); // hours short of target
+    }
   }
 
   return { present, shortCount, shortTotalMs, absent };
 };
 
 function MonthlySummary({ userId = 'guest' }) {
-  const { present, shortCount, shortTotalMs, absent } = getMonthlyStats(userId);
+  const [stats, setStats] = useState({ present: 0, shortCount: 0, shortTotalMs: 0, absent: 0 });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const startKey = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+    const endKey = toLocalDateKey(today);
+
+    getTimesheetRange(userId, startKey, endKey)
+      .then((entries) => {
+        if (cancelled) return;
+        setStats(getMonthlyStats(entries));
+      })
+      .catch((err) => {
+        console.error('MonthlySummary: failed to load timesheet range from FileMaker:', err);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [userId]);
+
+  const { present, shortCount, shortTotalMs, absent } = stats;
 
   return (
     <div className="ms-card">
@@ -71,19 +109,19 @@ function MonthlySummary({ userId = 'guest' }) {
 
       <div className="ms-grid">
         <div className="ms-stat">
-          <span className="ms-stat-value ms-green">{present}</span>
+          <span className="ms-stat-value ms-green">{loading ? '—' : present}</span>
           <span className="ms-stat-label">Present</span>
         </div>
         <div className="ms-stat">
-          <span className="ms-stat-value ms-amber">{shortCount}</span>
+          <span className="ms-stat-value ms-amber">{loading ? '—' : shortCount}</span>
           <span className="ms-stat-label">Short Time</span>
         </div>
         <div className="ms-stat">
-          <span className="ms-stat-value">{fmtHours(shortTotalMs)}</span>
+          <span className="ms-stat-value">{loading ? '—' : fmtHours(shortTotalMs)}</span>
           <span className="ms-stat-label">Short total</span>
         </div>
         <div className="ms-stat">
-          <span className="ms-stat-value ms-red">{absent}</span>
+          <span className="ms-stat-value ms-red">{loading ? '—' : absent}</span>
           <span className="ms-stat-label">Absent</span>
         </div>
       </div>
