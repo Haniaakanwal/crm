@@ -1,0 +1,338 @@
+/* ── CONTAINER PAGE LAYOUT ───────────────────────────────────────── */
+.acc-page {
+  padding: 24px;
+  background-color: var(--bg-deep); /* Main deep background color */
+  min-height: 100vh;
+  font-family: Syne, sans-serif;
+}
+
+/* Top Action & Navigation Control Bar Strip */
+.acc-top-action-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.acc-date-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background-color: var(--bg-card); /* Surface background token */
+  padding: 12px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.acc-date-nav button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: opacity 0.2s;
+}
+
+.acc-date-nav button:hover {
+  opacity: 0.7;
+}
+
+.acc-date-nav button svg {
+  color: var(--text-primary);
+  font-size: 1.25rem;
+}
+
+.acc-date-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Generate Month Statement Button Control */
+.acc-generate-btn {
+  background-color: var(--accent-amber-gold); /* System primary golden token */
+  color: var(--bg-deep);                       /* Contrasting dark text color */
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: opacity 0.2s;
+}
+
+.acc-generate-btn:hover {
+  opacity: 0.9;
+}
+
+/* ── METRICS DASHBOARD CARDS ROW ─────────────────────────────────── */
+.acc-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+  .acc-metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+.acc-stat-card {
+  background-color: var(--bg-card); /* Main modular card token background */
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.stat-lbl {
+  font-size: 0.85rem;
+  color: var(--text-secondary); /* Balanced gray secondary label text */
+  text-transform: capitalize;
+}
+
+.acc-stat-card h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 12px 0 6px 0;
+  color: var(--text-primary);
+}
+
+.stat-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted); /* Soft descriptive note text color */
+}
+
+/* Conditional variant theme tags for metric nodes */
+.acc-stat-card.disbursed h2 {
+  color: var(--success-green); /* Disbursed status layout green text */
+}
+
+.acc-stat-card.pending h2 {
+  color: var(--accent-amber-gold); /* Outstanding pending amber layout color */
+}
+
+/* ── SALARY LEDGER GRID RECORD TABLE ─────────────────────────────── */
+.acc-table-container {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.acc-table-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 24px;
+  margin: 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.acc-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.acc-table th {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  padding: 14px 24px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  letter-spacing: 0.03em;
+}
+
+.acc-table td {
+  padding: 16px 24px;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+.acc-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Employee Avatar Context Column Node */
+.acc-user-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+}
+
+.acc-avatar {
+  width: 32px;
+  height: 32px;
+  background-color: var(--bg-surface); 
+  color: var(--accent-amber-gold);     
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+/* Color overrides targeting numeric items */
+.acc-text-red {
+  color: var(--danger-red) !important; /* Deduction red highlight formatting */
+}
+
+.acc-text-gold {
+  color: var(--accent-amber-gold) !important; /* Remaining balance highlight */
+  font-weight: 700;
+}
+
+/* Status Pill Badges */
+.acc-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.acc-pill.paid {
+  background-color: rgba(52, 211, 153, 0.1);
+  color: var(--success-green);
+}
+
+.acc-pill.pending {
+  background-color: rgba(245, 184, 78, 0.1);
+  color: var(--accent-amber-gold);
+}
+
+.acc-empty {
+  padding: 40px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* Inline Table Editing Action Elements */
+.acc-edit-row-btn {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: Syne, sans-serif;
+  transition: all 0.2s;
+}
+
+.acc-edit-row-btn:hover {
+  border-color: var(--accent-amber-gold);
+  color: var(--text-primary);
+  background-color: var(--bg-hover);
+}
+
+/* Modal Layout Rules */
+.acc-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(7, 11, 19, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.acc-modal-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  width: 500px;
+  padding: 24px;
+}
+
+.acc-modal-title {
+  margin: 0 0 20px 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.acc-form-group {
+  margin-bottom: 16px;
+}
+
+.acc-form-group label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  letter-spacing: 0.02em;
+}
+
+.acc-input {
+  width: 100%;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 10px 12px;
+  border-radius: 6px;
+  outline: none;
+  box-sizing: border-box;
+  font-family: Syne, sans-serif;
+}
+
+.acc-input:focus {
+  border-color: var(--accent-amber-gold);
+}
+
+/* Form Variant Styles */
+.readonly-input {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+  color: var(--text-secondary) !important;
+  cursor: not-allowed;
+}
+
+.highlight-input {
+  border-color: rgba(245, 184, 78, 0.4);
+}
+
+.acc-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 16px;
+}
+
+.btn-cancel {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-submit {
+  background-color: var(--accent-amber-gold);
+  color: var(--bg-deep);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 700;
+}

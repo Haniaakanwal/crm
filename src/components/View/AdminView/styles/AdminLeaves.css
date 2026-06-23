@@ -1,0 +1,281 @@
+.al-page {
+  padding: 24px;
+  background-color: var(--bg-deep); /* Uses theme background */
+  color: var(--text-primary);       /* Uses primary text color */
+  min-height: 100vh;
+  font-family: Syne, sans-serif;
+}
+
+.al-page-header {
+  margin-bottom: 24px;
+}
+
+.al-page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.al-page-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary); /* Uses secondary label text */
+  margin: 4px 0 0 0;
+}
+
+.al-grid {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 24px;
+  align-items: start;
+}
+
+.pending-requests-card,
+.new-request-card {
+  background-color: var(--bg-card);       /* Uses card component background */
+  border: 1px solid var(--border-color); /* Uses global border color token */
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-primary);
+}
+
+.pending-badge {
+  background-color: var(--danger-red); /* Uses error status theme token */
+  color: #fff;
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+/* Tabs */
+.al-tabs {
+  display: flex;
+  background-color: var(--bg-surface); /* Uses surface container background */
+  padding: 4px;
+  border-radius: 8px;
+  gap: 4px;
+}
+
+.al-tab {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.al-tab:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.al-tab.active {
+  background-color: var(--bg-card); /* Uses card color alignment token */
+  color: var(--accent-amber-gold);   /* Highlights active tab with theme gold */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* Leaves rows items */
+.leaves-list-wrapper {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.leave-management-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.leave-management-row:last-child {
+  border-bottom: none;
+}
+
+.leave-row-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.al-avatar {
+  width: 40px;
+  height: 40px;
+  background-color: var(--bg-surface); 
+  color: var(--accent-amber-gold);      /* Standard profile text format link */
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.emp-title-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.leave-meta-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.leave-reason-text {
+  font-size: 0.85rem;
+  color: var(--text-muted); /* Soft gray styling text for text block areas */
+  font-style: italic;
+  margin-top: 4px;
+}
+
+/* Actions styling */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-action {
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-surface);
+  color: var(--text-secondary);
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-action.approve:hover {
+  background-color: rgba(52, 211, 153, 0.1);
+  color: var(--success-green);      
+  border-color: var(--success-green);
+}
+
+.btn-action.reject:hover {
+  background-color: rgba(248, 113, 113, 0.1);
+  color: var(--danger-red);        
+  border-color: var(--danger-red);  
+}
+
+.static-status-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.static-status-badge.approved { 
+  background-color: rgba(52, 211, 153, 0.1); 
+  color: var(--success-green);
+}
+.static-status-badge.pending { 
+  background-color: rgba(96, 165, 250, 0.1); 
+  color: var(--info-blue);
+}
+.static-status-badge.rejected { 
+  background-color: rgba(248, 113, 113, 0.1); 
+  color: var(--danger-red);
+}
+.static-status-badge.unpaid { 
+  background-color: rgba(245, 184, 78, 0.1); 
+  color: var(--accent-amber-gold);
+}
+
+/* Right Side Form Controls */
+.al-form-group {
+  margin-bottom: 16px;
+}
+
+.al-form-group label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.al-select,
+.al-input,
+.al-textarea {
+  width: 100%;
+  background-color: var(--bg-surface); /* Darker input context styling */
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.al-select:focus,
+.al-input:focus,
+.al-textarea:focus {
+  border-color: var(--accent-amber-gold);
+}
+
+.al-textarea {
+  height: 100px;
+  resize: none;
+}
+
+.form-row-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.al-submit-btn {
+  background-color: var(--accent-amber-gold); /* Golden action payload styling */
+  color: var(--bg-deep);                       /* High contrasting dark textual tone */
+  border: none;
+  width: 100%;
+  padding: 14px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: opacity 0.2s;
+  margin-top: 8px;
+}
+
+.al-submit-btn:hover {
+  opacity: 0.9;
+}

@@ -1,0 +1,278 @@
+.tx-page {
+  padding: 24px;
+  background-color: var(--bg-deep);
+  min-height: 100vh;
+  font-family: Syne, sans-serif;
+}
+
+.tx-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.tx-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.tx-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.tx-new-btn {
+  background-color: var(--accent-amber-gold);
+  color: var(--bg-deep);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Actions Search bar strip adjustments */
+.tx-action-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.tx-search-container {
+  position: relative;
+  width: 320px;
+}
+
+.tx-search-ico {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+}
+
+.tx-search-container input {
+  width: 100%;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 10px 12px 10px 38px;
+  color: var(--text-primary);
+  outline: none;
+}
+
+/* Tabs styles matching design mock */
+.tx-tabs-container {
+  display: flex;
+  background-color: var(--bg-surface);
+  padding: 4px;
+  border-radius: 8px;
+  gap: 4px;
+}
+
+.tx-tab {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.tx-tab.active {
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+}
+
+/* Table element formatting items */
+.tx-ledger-container {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px 0 0 0;
+}
+
+.tx-table-headline {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 0 24px 20px 24px;
+  margin: 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tx-table-element {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tx-table-element th {
+  padding: 14px 24px;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tx-table-element td {
+  padding: 16px 24px;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tx-user-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tx-avatar {
+  width: 30px;
+  height: 30px;
+  background-color: var(--bg-surface);
+  color: var(--accent-amber-gold);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* Dynamic variant pill adjustments */
+.tx-type-pill {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.tx-type-pill.bonus {
+  background-color: rgba(168, 85, 247, 0.1);
+  color: #a855f7;
+}
+.tx-type-pill.advance {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--info-blue);
+}
+.tx-type-pill.loan {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--danger-red);
+}
+.tx-type-pill.increment {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--success-green);
+}
+
+.tx-amount-cell {
+  font-weight: 700;
+}
+.tx-amount-cell.positive {
+  color: var(--success-green);
+}
+.tx-amount-cell.negative {
+  color: var(--danger-red);
+}
+
+.tx-balance-cell {
+  color: var(--accent-amber-gold);
+  font-weight: 600;
+}
+.tx-notes-cell {
+  color: var(--text-secondary);
+}
+.tx-status-msg {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+/* Dialog Modal Box layouts styling */
+.tx-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(7, 11, 19, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.tx-modal-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 24px;
+  border-radius: 12px;
+  width: 480px;
+}
+
+.tx-modal-title {
+  margin: 0 0 20px 0;
+  color: var(--text-primary);
+}
+.tx-form-group {
+  margin-bottom: 16px;
+}
+.tx-form-group label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+.tx-select,
+.tx-input {
+  width: 100%;
+  padding: 10px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: 6px;
+  outline: none;
+  box-sizing: border-box;
+}
+.tx-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.tx-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+.btn-close {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.btn-commit {
+  background-color: var(--accent-amber-gold);
+  color: var(--bg-deep);
+  border: none;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+}

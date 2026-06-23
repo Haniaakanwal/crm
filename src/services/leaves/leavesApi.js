@@ -68,38 +68,7 @@ export async function getEmployeeLeaves(employeeId) {
   }
 }
 
-// ── FETCH LIVE LEAVE BALANCE SUMMARY ──────────────────────────
-export async function getLeaveBalanceSummary(employeeId, year) {
-  const token = await createSession();
-  try {
-    const url = `${FM_BASE}/layouts/LeaveBalance/_find`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        query: [{ _fk_EmployeeID: `==${employeeId}`, BalanceYear: `==${year}` }],
-      }),
-    });
 
-    const data = await safeJson(res);
-    if (!res.ok) return null;
-
-    const f = data?.response?.data?.[0]?.fieldData || {};
-    return {
-      totalDays: Number(f.YearlyAllowance) || 24,
-      usedDays: Number(f.TotalDaysTaken) || 0,
-      remaining: Number(f.RemainingPaid) || 0,
-      paidTaken: Number(f.PaidDaysTaken) || 0,
-      shortDays: Number(f.ShortConvertedDay) || 0,
-      unpaidTaken: Number(f.UnpaidDaysTaken) || 0,
-    };
-  } finally {
-    await deleteSession(token);
-  }
-}
 
 // ── SUBMIT A NEW LEAVE REQUEST (SAVES PER DAY) ──────────────────
 export async function saveLeaveRequestToFM(employeeId, leave) {
@@ -183,6 +152,107 @@ export async function syncShortHoursToFM(employeeId, year, shortMinutesTotal, sh
   } catch (err) {
     console.error("Failed syncing short hours calculation to FileMaker:", err);
     return false;
+  } finally {
+    await deleteSession(token);
+  }
+}
+
+// ── FETCH ALL LEAVES FOR ALL EMPLOYEES (ADMIN VIEW) ──────────────────
+export async function getAllEmployeeLeaves() {
+  const token = await createSession();
+  try {
+    // Reading all records by fetching from the layout without matching constraints
+    const url = `${FM_BASE}/layouts/LeaveRequest/records?_limit=500`;
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await safeJson(res);
+    if (!res.ok) {
+      if (data?.messages?.[0]?.code === '401') return [];
+      throw new Error(`Failed to fetch leaves: ${res.status}`);
+    }
+
+    const records = data?.response?.data || [];
+    return records.map((r) => {
+      const f = r.fieldData;
+      return {
+        id: r.recordId, // FileMaker Record ID for accurate targeting
+        employeeId: f._fk_EmployeeID,
+        type: f.LeaveType,
+        fromDate: fmDateToDateKey(f.LeaveDate),
+        toDate: fmDateToDateKey(f.LeaveDate),
+        category: f.Category,
+        reason: f.Description,
+        status: f.Status || 'Pending',
+        year: f.Year,
+        month: f.Month
+      };
+    });
+  } finally {
+    await deleteSession(token);
+  }
+}
+
+// ── UPDATE LEAVE STATUS (APPROVE / REJECT) ───────────────────────────
+export async function updateLeaveStatusInFM(recordId, newStatus) {
+  const token = await createSession();
+  try {
+    const url = `${FM_BASE}/layouts/LeaveRequest/records/${recordId}`;
+    const res = await fetch(url, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        fieldData: {
+          Status: newStatus
+        }
+      }),
+    });
+
+    if (!res.ok) throw new Error('Failed to update leave status in FileMaker');
+    return true;
+  } finally {
+    await deleteSession(token);
+  }
+}
+
+// Add or verify this function in your src/services/leaves/leavesApi.js file
+export async function getLeaveBalanceSummary(employeeId, year) {
+  const token = await createSession();
+  try {
+    const url = `${FM_BASE}/layouts/LeaveBalance/_find`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        query: [{ _fk_EmployeeID: `==${employeeId}`, BalanceYear: `==${year}` }],
+      }),
+    });
+
+    const data = await safeJson(res);
+    if (!res.ok || !data?.response?.data?.length) return null;
+
+    const f = data.response.data[0].fieldData;
+    
+    // ── MAPS DIRECTLY TO YOUR FILEMAKER FIELDS ──
+    return {
+      totalDays: Number(f.YearlyAllowance) || 24,    // From 'YearlyAllowance' field
+      usedDays: Number(f.TotalDaysTaken) || 0,       // From 'TotalDaysTaken' calculation field
+      remaining: Number(f.RemainingPaid) || 0,       // From 'RemainingPaid' field
+      paidTaken: Number(f.PaidDaysTaken) || 0,       // From 'PaidDaysTaken' field
+      shortDays: Number(f.ShortConvertedDays) || 0,  // From 'ShortConvertedDays' field
+      unpaidTaken: Number(f.UnpaidDaysTaken) || 0,   // From 'UnpaidDaysTaken' field
+    };
   } finally {
     await deleteSession(token);
   }

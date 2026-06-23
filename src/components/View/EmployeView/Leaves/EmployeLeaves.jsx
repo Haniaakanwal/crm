@@ -8,16 +8,19 @@ import ShortHoursTracker from './ShortHoursTracker';
 import { calculateShortSummary } from './shortHoursUtils';
 import { calculateLeaveSummary } from './leaveUtils';
 import { getTimesheetRange } from '../../../../services/timesheet/timesheetApi';
-import { getEmployeeLeaves, getLeaveBalanceSummary, syncShortHoursToFM } from '../../../../services/leaves/leavesApi';
+// Import your service function here
+import { getEmployeeLeaves, getLeaveBalanceSummary } from '../../../../services/leaves/leavesApi';
 
 function EmployeeLeaves() {
   const user = JSON.parse(localStorage.getItem('crm_current_user') || '{}');
   const userId = user.id || user.email || 'guest';
 
   const [leaves, setLeaves] = useState([]);
-  const [fmBalance, setFmBalance] = useState(null);
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // ── 1. STATE FOR LIVE FILEMAKER DATA ──
+  const [fmBalance, setFmBalance] = useState(null);
 
   const now = new Date();
   const year = now.getFullYear();
@@ -26,11 +29,11 @@ function EmployeeLeaves() {
   const fetchLeavesFromBackend = useCallback(() => {
     Promise.all([
       getEmployeeLeaves(userId),
-      getLeaveBalanceSummary(userId, year)
+      getLeaveBalanceSummary(userId, year) // Fetching from FileMaker table
     ])
       .then(([records, balance]) => {
         setLeaves(records);
-        setFmBalance(balance);
+        setFmBalance(balance); // Save layout details to state
       })
       .catch((err) => console.error('Failed loading from FileMaker layouts:', err));
   }, [userId, year]);
@@ -60,14 +63,9 @@ function EmployeeLeaves() {
   }, [userId, year]);
 
   const shortSummary = calculateShortSummary(attendanceRecords, year);
-
-  // Background Sync: Pushes up hours calculation totals safely without stalling render UI loops
-  useEffect(() => {
-    if (attendanceRecords.length > 0) {
-      syncShortHoursToFM(userId, year, shortSummary.shortMinutesTotal, shortSummary.shortDays);
-    }
-  }, [attendanceRecords, userId, year, shortSummary.shortMinutesTotal, shortSummary.shortDays]);
   
+  // ── 2. SINGLE SOURCE OF TRUTH CHECK ──
+  // If FileMaker has a calculated balance row use it, otherwise use frontend calculation fallback
   const leaveSummary = fmBalance || calculateLeaveSummary(leaves, year, shortSummary);
 
   if (loading) {
@@ -83,6 +81,7 @@ function EmployeeLeaves() {
 
       <div className="el-grid">
         <div className="el-col">
+          {/* ── 3. DATA PASSED DOWN TO RENDER ── */}
           <AnnualLeaveBalance summary={leaveSummary} year={year} />
           <MonthlyLeaveWarning leaves={leaves} year={year} month={month} />
           <LeaveHistory leaves={leaves} year={year} />
