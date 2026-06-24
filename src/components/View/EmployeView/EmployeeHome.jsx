@@ -6,6 +6,7 @@ import { calculateLeaveSummary } from './Leaves/leaveUtils';
 import { loadTimesheetFromFM, getTimesheetRange } from '../../../services/timesheet/timesheetApi';
 import { getEmployeeLeaves, getLeaveBalanceSummary } from '../../../services/leaves/leavesApi';
 import { fetchPublicHolidaysFromFM } from '../../../services/holidays/holidaysApi';
+import { getEmployeeAssignedAssets } from '../../../services/assets/assetsApi'; // 🟢 Added asset API import
 import { Link } from 'react-router';
 
 const todayKey = () => {
@@ -112,6 +113,7 @@ function EmployeeHome() {
   const [fmBalance, setFmBalance] = useState(null);
   const [yearEntries, setYearEntries] = useState([]);
   const [holidays, setHolidays] = useState([]);
+  const [assetCount, setAssetCount] = useState(null); // 🟢 State to hold total dynamic assets
 
   const now = new Date();
   const year = now.getFullYear();
@@ -163,6 +165,20 @@ function EmployeeHome() {
 
     return () => { cancelled = true; };
   }, [userId, year]);
+
+  // 4. Live active items counter synchronized with FileMaker record rows
+  useEffect(() => {
+    let cancelled = false;
+    getEmployeeAssignedAssets(userId)
+      .then((records) => {
+        if (!cancelled) {
+          setAssetCount(records ? records.length : 0);
+        }
+      })
+      .catch((err) => console.error('EmployeeHome: failed to count asset lines:', err));
+
+    return () => { cancelled = true; };
+  }, [userId]);
 
   const shortSummary = calculateShortSummary(yearEntries, year);
   
@@ -219,6 +235,7 @@ function EmployeeHome() {
           <div className="eo-stat-sub">Remaining of {leaveSummary.totalDays || 24} allowed</div>
         </Link>
 
+        {/* ── Dynamic Assets Display matching image_88e444.png ── */}
         <Link
           to="/employeView/assets"
           className="eo-stat-card eo-clickable"
@@ -226,8 +243,10 @@ function EmployeeHome() {
         >
           <div className="eo-stat-icon eo-icon-purple"><LuLaptop size={18} /></div>
           <div className="eo-stat-label">My Assets</div>
-          <div className="eo-stat-value eo-value-muted">—</div>
-          <div className="eo-stat-sub">Assets module...</div>
+          <div className="eo-stat-value eo-value-blue">
+            {assetCount !== null ? assetCount : '—'}
+          </div>
+          <div className="eo-stat-sub">Items currently with you</div>
         </Link>
 
         <Link

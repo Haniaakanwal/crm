@@ -1,0 +1,132 @@
+.as-page {
+  padding: 24px;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+  color: var(--text-primary);
+}
+
+.as-breadcrumb {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin: 0 0 4px;
+}
+.as-breadcrumb span { color: var(--text-muted); margin: 0 4px; }
+
+.as-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.as-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin: 6px 0 24px;
+}
+
+/* ── DOUBLE CARD FLEX HOOD GRID ── */
+.as-grid-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.as-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.as-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 24px;
+}
+
+.as-card-icon.text-orange { color: #f97316; }
+.as-card-icon.text-gold { color: var(--accent-amber-gold); }
+
+/* ── FORM ELEMENTS ── */
+.as-form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.as-form-row .as-form-group {
+  flex: 1;
+}
+
+.as-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.as-form-group.full-width {
+  margin-bottom: 16px;
+}
+
+.as-form-group label {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.as-form-group input {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.as-form-group input:focus {
+  outline: none;
+  border-color: var(--accent-amber-gold);
+}
+
+/* ── INTERACTIVE BUTTON BUTTON ── */
+.as-save-btn {
+  background-color: var(--accent-amber-gold);
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  margin-top: 12px;
+  width: fit-content;
+  transition: opacity 0.2s;
+}
+
+.as-save-btn:hover { opacity: 0.9; }
+.as-save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.as-loading {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  padding: 2rem 0;
+}
+
+.as-success-toast {
+  background-color: rgba(52, 211, 153, 0.1);
+  border: 1px solid var(--success-green);
+  color: var(--success-green);
+  font-size: 0.82rem;
+  padding: 10px 16px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 900px) {
+  .as-grid-layout { grid-template-columns: 1fr; }
+}

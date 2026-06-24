@@ -14,7 +14,7 @@ export async function getMonthlySalaryRecords(year, month) {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        query: [{ SalaryYear: `==${year}`, SalaryMonth: `==${month}` }],
+      query: [{ SalaryYear: year, SalaryMonth: month }],
       }),
     });
 

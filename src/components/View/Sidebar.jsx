@@ -14,7 +14,7 @@ const EMPLOYEE_NAV_ITEMS = [
 ];
 
 const ADMIN_NAV_ITEMS = [
-  { label: 'Dashboard',    path: '/adminView/home',         icon: LuHouse },
+  { label: 'Dashboard',    path: '/adminView/AdminDashboard',         icon: LuHouse },
   { label: 'Timesheet',    path: '/adminView/timesheet',    icon: LuClock, badge: 'Live' },
   { label: 'Leaves',       path: '/adminView/leaves',       icon: LuCalendarOff },
   { label: 'Employees',    path: '/adminView/employees',    icon: LuUsers },

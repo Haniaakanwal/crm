@@ -1,17 +1,31 @@
-.login,.register{
+/* ── MAIN VIEWPORT CONTAINER BOX ── */
+.login, .register {
   background-color: var(--bg-deep);
+  min-height: 100vh;           /* 🟢 FORCES container to take full height of viewport */
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
-.login-card {
-  width: 100%;
-  max-width: 340px;
-  margin: 0 auto;
-  
-}
-.login-SignUp{
+
+.login-SignUp {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  flex: 1;                     /* 🟢 Allows content wrapper to expand dynamically */
+  padding: 20px 40px;          /* Clean layout padding clear from window edges */
+  box-sizing: border-box;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
+
+}
+ form {
+  background-color: transparent !important;
+
 }
 .login-title {
   text-align: center;
@@ -38,8 +52,9 @@
   font-weight: 600;
   color: var(--text-secondary);
   margin-bottom: 8px;
-  background-color: var(--bg-deep);
+
 }
+
 
 .role-options {
   display: grid;
@@ -51,7 +66,6 @@
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 12px 14px;
@@ -96,21 +110,27 @@
 
 .input-wrapper input {
   width: 100%;
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  /* 🟢 UPDATED: Explicitly applies a distinct lighter surface color token */
+  background-color: var(--bg-surface, #0f172a); 
+  /* 🟢 ADDED: Adds a crisp border layout to cleanly define input field borders */
+  border: 1px solid var(--border-color, #1e293b); 
   border-radius: 8px;
   padding: 10px 38px;
   font-size: 13px;
   color: var(--text-primary);
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .input-wrapper input::placeholder {
   color: var(--text-muted);
 }
 
+/* 🟢 ADDED: Provides visual depth feedback when the user clicks inside an input */
 .input-wrapper input:focus {
   outline: none;
+  background-color: rgba(245, 184, 78, 0.02); /* Multi-layer tint blend glow */
   border-color: var(--accent-amber-gold);
+  box-shadow: 0 0 0 3px rgba(245, 184, 78, 0.1);
 }
 
 .input-icon {

@@ -10,10 +10,10 @@ import AccessDenied from '../components/Auth/AccessDenied';
 import EmployeHome    from '../components/View/EmployeView/EmployeeHome';
 import EmployeTimesheet   from '../components/View/EmployeView/TimeSheet/EmployeTimesheet';
 import EmployeLeaves      from '../components/View/EmployeView/Leaves/EmployeLeaves';
-import EmployeAssets      from '../components/View/EmployeView/EmployeAssets';
+import EmployeAssets      from '../components/View/EmployeView/Assets/EmployeAssets';
 import Holidays           from '../components/View/EmployeView/Holidays/EmployeeHolidays';
 
-import AdminHome from '../components/View/AdminView/AdminHome';
+import AdminDashboard from '../components/View/AdminView/AdminDashboard';
 import AdminTimesheet from '../components/View/AdminView/Timesheet/AdminTimesheet';
 import AdminLeaves from '../components/View/AdminView/Leaves/AdminLeaves';
 import AdminEmployees from '../components/View/AdminView/Employees/AdminEmployees';
@@ -51,7 +51,7 @@ function AppRoutes() {
       <Route element={<RequireRole allow={['admin']} />}>
         <Route path="/adminView" element={<Dashboard />}>
           <Route index element={<Navigate to="home" replace />} />
-          <Route path="home"         element={<AdminHome />} />
+          <Route path="AdminDashboard"         element={<AdminDashboard/>} />
           <Route path="timesheet"    element={<AdminTimesheet />} />
           <Route path="leaves"       element={<AdminLeaves />} />
           <Route path="employees"    element={<AdminEmployees />} />

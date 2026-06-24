@@ -74,3 +74,129 @@
   color: var(--text-secondary, #8b93a7);
   font-size: 13px;
 }
+
+/* ── PUBLIC HOLIDAYS CONTAINER BOARD ── */
+.admin-holidays-card {
+  background-color: var(--bg-card, #111827);
+  border: 1px solid var(--border-color, #1e2d45);
+  border-radius: 10px;
+  padding: 24px;
+  margin-top: 8px;
+}
+
+.admin-holidays-table-title {
+  margin: 0 0 20px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary, #f5f0e8);
+}
+
+/* ── HIGH DENSITY ADMIN DATA TABLE ── */
+.admin-holidays-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+.admin-holidays-table th {
+  padding: 12px 16px;
+  color: var(--text-secondary, #6b7280);
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.admin-holidays-table td {
+  padding: 14px 16px;
+  color: var(--text-primary, #e8e6e1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  vertical-align: middle;
+}
+
+.admin-holidays-table tr:hover td {
+  background-color: rgba(255, 255, 255, 0.01);
+}
+
+/* Index Number Column (#) */
+.admin-holidays-idx {
+  color: var(--text-muted, #4b5563) !important;
+  width: 50px;
+}
+
+/* Holiday Name Column */
+.admin-holidays-name {
+  font-weight: 600;
+  color: var(--text-primary, #f5f0e8) !important;
+}
+
+/* ── INTERACTIVE CREATION MODAL SHIELD ── */
+.admin-holiday-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.admin-holiday-modal-box {
+  background-color: var(--bg-deep, #0b0f19);
+  border: 1px solid var(--border-color, #1e2d45);
+  padding: 28px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+.admin-holiday-modal-box h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.25rem;
+  color: var(--text-primary, #f5f0e8);
+}
+
+.admin-holiday-modal-box p {
+  margin: 0 0 24px 0;
+  font-size: 0.78rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+/* Form Inputs inside Modal */
+.admin-holiday-form-group {
+  margin-bottom: 16px;
+}
+
+.admin-holiday-form-group label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--text-secondary, #9ca3af);
+}
+
+.admin-holiday-form-group input,
+.admin-holiday-form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  background-color: var(--bg-card, #111827);
+  border: 1px solid var(--border-color, #1e2d45);
+  border-radius: 6px;
+  color: var(--text-primary, #fff);
+  font-size: 0.85rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+}
+
+.admin-holiday-form-group input:focus,
+.admin-holiday-form-group select:focus {
+  outline: none;
+  border-color: var(--accent-amber-gold, #f5b84e);
+}

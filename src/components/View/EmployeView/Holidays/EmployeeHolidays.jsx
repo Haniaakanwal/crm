@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import '../styles/EmployeeHolidays.css';
 import { LuMoon, LuBriefcase, LuFlag, LuStar, LuPartyPopper } from 'react-icons/lu';
 // Import the seeding process along with your fetch function
-import { fetchPublicHolidaysFromFM, seedHolidaysToFileMaker } from '../../../../services/holidays/holidaysApi';
+import { fetchPublicHolidaysFromFM } from '../../../../services/holidays/holidaysApi';
 
 const ICON_MAP = { moon: LuMoon, briefcase: LuBriefcase, flag: LuFlag, star: LuStar };
 
@@ -21,7 +21,7 @@ function EmployeeHolidays() {
         // If FileMaker returns empty, run seed once to write data automatically
         if (records.length === 0) {
           console.log("Database layout table is empty. Running seeding routine...");
-          await seedHolidaysToFileMaker();
+        
           // Re-fetch now that records have been written to FileMaker
           const freshRecords = await fetchPublicHolidaysFromFM();
           setHolidays(freshRecords);
