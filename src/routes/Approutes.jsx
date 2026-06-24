@@ -50,7 +50,7 @@ function AppRoutes() {
       {/* Admin portal — only role === 'admin' may enter */}
       <Route element={<RequireRole allow={['admin']} />}>
         <Route path="/adminView" element={<Dashboard />}>
-          <Route index element={<Navigate to="home" replace />} />
+          <Route index element={<Navigate to="AdminDashboard" replace />} />
           <Route path="AdminDashboard"         element={<AdminDashboard/>} />
           <Route path="timesheet"    element={<AdminTimesheet />} />
           <Route path="leaves"       element={<AdminLeaves />} />
