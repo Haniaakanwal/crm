@@ -72,7 +72,7 @@ function Login() {
       if (role === 'employee') {
         navigate('/employeView/home');
       } else {
-        navigate('/adminView/home');
+        navigate('/adminView/AdminDashboard');
       }
 
     } catch (err) {
