@@ -6,7 +6,7 @@ function AccessDenied() {
 
   const user = JSON.parse(localStorage.getItem('crm_current_user') || '{}');
   const role = (user.role || '').toLowerCase();
-  const homePath = role === 'admin' ? '/adminView/home' : '/employeView/home';
+  const homePath = role === 'admin' ? '/adminView/AdminDashboard' : '/employeView/home';
 
   return (
     <div className="access-denied-page">

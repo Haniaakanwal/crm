@@ -10,7 +10,7 @@ const BREADCRUMBS = {
   '/employeView/assets':     { parent: 'Employee', label: 'My Assets' },
   '/employeView/holidays':   { parent: 'Employee', label: 'Holidays' },
 
-  '/adminView/home':         { parent: 'Admin', label: 'Dashboard' },
+  '/adminView/AdminDashboard':         { parent: 'Admin', label: 'Dashboard' },
   '/adminView/timesheet':    { parent: 'Admin', label: 'Timesheet' },
   '/adminView/leaves':       { parent: 'Admin', label: 'Leaves' },
   '/adminView/employees':    { parent: 'Admin', label: 'Employees' },

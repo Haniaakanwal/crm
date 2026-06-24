@@ -36,7 +36,7 @@ function Navbar({ activeRole }) {
 
   const handleRoleSwitch = (role) => {
     if (role === activeRole) return;
-    navigate(role === 'admin' ? '/adminView/home' : '/employeView/home');
+    navigate(role === 'admin' ? '/adminView/AdminDashboard' : '/employeView/home');
   };
 
   return (
