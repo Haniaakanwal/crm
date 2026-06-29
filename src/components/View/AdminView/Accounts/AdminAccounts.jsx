@@ -12,7 +12,10 @@ function initials(name) {
 }
 
 function AdminAccounts() {
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 4, 1)); 
+
+    const monthNumber = new Date().getMonth()
+
+  const [currentDate, setCurrentDate] = useState(new Date(2026, monthNumber, 1)); 
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);

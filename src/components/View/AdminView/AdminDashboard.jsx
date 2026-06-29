@@ -64,7 +64,7 @@ function AdminDashboard() {
   if (loading) {
     return (
       <div className="db-page">
-        <p className="db-loading">Aggregating centralized layout metrics from FileMaker engine...</p>
+        <p className="db-loading">loading...</p>
       </div>
     );
   }

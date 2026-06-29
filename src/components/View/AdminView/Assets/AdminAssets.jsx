@@ -112,7 +112,7 @@ function AdminAssets() {
 
       <div className="as-card-table">
         <h3 className="as-card-heading">Asset Registry</h3>
-        {loading ? <p className="as-msg">Fetching asset tracking matrix...</p> : (
+        {loading ? <p className="as-msg">Fetching asset ...</p> : (
           <table className="as-table">
             <thead>
               <tr>

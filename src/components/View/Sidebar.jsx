@@ -6,7 +6,7 @@ import {
 import { deriveDisplayName, getInitials } from '../utils/userDisplay';
 
 const EMPLOYEE_NAV_ITEMS = [
-  { label: 'My Home',      path: '/employeView/AdminDashboard',      icon: LuHouse },
+  { label: 'My Home',      path: '/employeView/home',      icon: LuHouse },
   { label: 'My Timesheet', path: '/employeView/timesheet', icon: LuClock, badge: 'Live' },
   { label: 'My Leaves',    path: '/employeView/leaves',    icon: LuCalendarOff },
   { label: 'My Assets',    path: '/employeView/assets',    icon: LuMonitor },

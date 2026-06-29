@@ -10,6 +10,33 @@ function initials(name) {
   return (name || '?').slice(0, 2).toUpperCase();
 }
 
+// 🟢 NEW: Helper function to turn "MM/DD/YYYY" layout dates into a dynamic display format (e.g., "13 May")
+function formatTransactionDate(dateStr) {
+  if (!dateStr) return '—';
+  
+  // Parse standard FileMaker date component shapes split by "/" or "-"
+  const parts = dateStr.split(/[/-]/);
+  if (parts.length !== 3) return dateStr;
+
+  let month, day, year;
+  
+  if (parts[0].length === 4) {
+    // If it's YYYY-MM-DD
+    [year, month, day] = parts;
+  } else {
+    // If it's MM/DD/YYYY
+    [month, day, year] = parts;
+  }
+
+  const dateObj = new Date(Number(year), Number(month) - 1, Number(day));
+  
+  // Returns a readable local string context (e.g., "13 May")
+  return dateObj.toLocaleDateString('en-US', {
+    day: 'numeric',
+    month: 'short',
+  });
+}
+
 function AdminTransactions() {
   const [transactions, setTransactions] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -123,7 +150,7 @@ function AdminTransactions() {
         <h3 className="tx-table-headline">{activeTab === 'All' ? 'All Transactions' : `${activeTab} Records`} — 2026</h3>
         
         {loading ? (
-          <p className="tx-status-msg">Refreshing records matrix from FileMaker engine...</p>
+          <p className="tx-status-msg">Refreshing records...</p>
         ) : filteredTransactions.length === 0 ? (
           <p className="tx-status-msg">No historical transaction entries found.</p>
         ) : (
@@ -145,7 +172,8 @@ function AdminTransactions() {
                 
                 return (
                   <tr key={row.id}>
-                    <td className="tx-date-cell">13 May</td> {/* Static placeholder display for demo sync formatting */}
+                    {/* 🟢 FIXED: Replaced static "13 May" template text with a live, formatted data parameter */}
+                    <td className="tx-date-cell">{formatTransactionDate(row.txDate)}</td>
                     <td>
                       <div className="tx-user-cell">
                         <span className="tx-avatar">{initials(resolvedName)}</span>
@@ -160,7 +188,7 @@ function AdminTransactions() {
                     </td>
                     <td className="tx-notes-cell">{row.notes}</td>
                     <td className="tx-balance-cell">
-                      {row.balance !== null ? `Rs ${row.balance}` : '—'}
+                      {row.balance !== null ? `Rs ${row.balance.toLocaleString()}` : '—'}
                     </td>
                   </tr>
                 );
@@ -204,7 +232,7 @@ function AdminTransactions() {
 
               <div className="tx-form-group">
                 <label>Statement Notes / Reference Memo</label>
-                <input type="text" className="tx-input" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="e.g. Advance paid on 6 May" required />
+                <input type="text" className="tx-input" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="e.g. System adjustment log" required />
               </div>
 
               <div className="tx-modal-actions">
