@@ -1,7 +1,7 @@
-import { NavLink } from 'react-router';
+import { NavLink, useNavigate } from 'react-router';
 import {
   LuHouse, LuClock, LuCalendarDays, LuMonitor, LuCalendarOff,
-  LuUsers, LuWallet, LuReceipt, LuSettings,
+  LuUsers, LuWallet, LuReceipt, LuSettings, LuLogOut,
 } from 'react-icons/lu';
 import { deriveDisplayName, getInitials } from '../utils/userDisplay';
 
@@ -26,6 +26,8 @@ const ADMIN_NAV_ITEMS = [
 ];
 
 function Sidebar({ activeRole }) {
+  const navigate = useNavigate(); // 🟢 Used for routing action redirecting
+
   const user = JSON.parse(localStorage.getItem('crm_current_user') || '{}');
   const rawName = deriveDisplayName(user);
   const displayName = rawName.toUpperCase();
@@ -36,6 +38,16 @@ function Sidebar({ activeRole }) {
 
   const navItems = activeRole === 'admin' ? ADMIN_NAV_ITEMS : EMPLOYEE_NAV_ITEMS;
   const sectionLabel = activeRole === 'admin' ? 'Admin Portal' : 'My Portal';
+
+  // 🟢 Handles wiping session information completely on exit click
+  const handleLogout = () => {
+    localStorage.removeItem('crm_current_user');
+    localStorage.removeItem('userToken'); // Clean fallback tags if also used elsewhere
+    sessionStorage.clear();
+    
+    // Kick out directly to login
+    navigate('/login', { replace: true });
+  };
 
   return (
     <aside className="sidebar">
@@ -53,12 +65,43 @@ function Sidebar({ activeRole }) {
         </nav>
       </div>
 
-      <div className="sidebar-footer">
-        <div className="sidebar-footer-avatar">{initials}</div>
-        <div className="sidebar-footer-info">
-          <span className="sf-name">{displayName}</span>
-          <span className="sf-role">{role}</span>
+      {/* 🟢 Modified Footer Section Layout containing the action action button trigger */}
+      <div className="sidebar-footer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="sidebar-footer-avatar">{initials}</div>
+          <div className="sidebar-footer-info">
+            <span className="sf-name">{displayName}</span>
+            <span className="sf-role">{role}</span>
+          </div>
         </div>
+        
+        {/* Logout Trigger Option */}
+        <button 
+          onClick={handleLogout}
+          title="Sign Out"
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: 'rgba(255, 255, 255, 0.4)',
+            cursor: 'pointer',
+            padding: '6px',
+            borderRadius: '4px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.15s ease-in-out'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = '#ef4444';
+            e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.08)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'rgba(255, 255, 255, 0.4)';
+            e.currentTarget.style.backgroundColor = 'transparent';
+          }}
+        >
+          <LuLogOut size={16} />
+        </button>
       </div>
     </aside>
   );
