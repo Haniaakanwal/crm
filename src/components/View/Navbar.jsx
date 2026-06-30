@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { LuCrown, LuUser, LuSearch, LuBell } from 'react-icons/lu';
+import { LuCrown, LuUser, LuSearch, LuBell, LuLogOut } from 'react-icons/lu';
 import { deriveDisplayName, getInitials } from '../utils/userDisplay';
 
 function Navbar({ activeRole }) {
@@ -39,6 +39,14 @@ function Navbar({ activeRole }) {
     navigate(role === 'admin' ? '/adminView/AdminDashboard' : '/employeView/home');
   };
 
+  // ── Handles logging out and clearing user data ──
+  const handleLogout = () => {
+    localStorage.removeItem('crm_current_user');
+    localStorage.removeItem('userToken');
+    sessionStorage.clear();
+    navigate('/login', { replace: true });
+  };
+
   return (
     <header className="navbar">
       <div className="navbar-left">
@@ -75,9 +83,39 @@ function Navbar({ activeRole }) {
           <input type="text" placeholder="Search..." />
         </div>
         <span className="navbar-clock">{time}</span>
+        
         <button className="navbar-notif-btn">
           <LuBell size={15} />
           <span className="notif-dot" />
+        </button>
+
+        {/* 🟢 NEW: Navbar Logout Trigger Button */}
+        <button 
+          onClick={handleLogout}
+          title="Sign Out"
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: 'rgba(255, 255, 255, 0.6)',
+            cursor: 'pointer',
+            padding: '6px',
+            borderRadius: '4px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginRight: '8px',
+            transition: 'all 0.15s ease-in-out'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = '#ef4444';
+            e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.08)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)';
+            e.currentTarget.style.backgroundColor = 'transparent';
+          }}
+        >
+          <LuLogOut size={15} />
         </button>
 
         {/* ── Live user ── */}
